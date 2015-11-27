@@ -3,6 +3,9 @@ package fr.upem.mdigangi.dreseau.users;
 
 import com.example.android.wifidirect.R;
 
+import fr.upem.android.usersprovider.IProfile;
+import fr.upem.android.usersprovider.UsersDBOpenHelper;
+
 /**
  * Created by mattia on 21/11/15.
  */
@@ -27,12 +30,12 @@ public class BasicProfile implements IProfile {
     @Override
     public String getData() {
         StringBuilder sb = new StringBuilder("{ ");
-        sb.append("\"name\":" + "\"" + name + "\", ");
-        sb.append("\"surname\":" + "\"" + surname + "\", ");
-        sb.append("\"mobile\":" + "\"" + phoneNumber + "\", ");
-        sb.append("\"birthDate\":" + "\"" + birthDate + "\", ");
-        sb.append("\"email\":" + "\"" + email + "\", ");
-        sb.append("\"imageId\":" + "\"" + imageId + "\"");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_NAME + "\":" + name + "\", ");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME + "\":" + "\"" + surname + "\", ");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_PHONE + "\":" + "\"" + phoneNumber + "\", ");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE + "\":" + "\"" + birthDate + "\", ");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL + "\":" + "\"" + email + "\", ");
+        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID + "\":" + "\"" + imageId + "\"");
         sb.append("}");
 
         return sb.toString();

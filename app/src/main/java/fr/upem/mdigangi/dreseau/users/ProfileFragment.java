@@ -2,8 +2,8 @@ package fr.upem.mdigangi.dreseau.users;
 
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +13,17 @@ import android.widget.TextView;
 import com.example.android.wifidirect.R;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+
+import fr.upem.android.usersprovider.IProfile;
+import fr.upem.android.usersprovider.JsonProfileParser;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class ProfileFragment extends Fragment {
 
-    public static interface ProfileFragmentListener{
+    public interface ProfileFragmentListener{
         void itemClicked(long id);
     }
 
@@ -101,14 +104,14 @@ public class ProfileFragment extends Fragment {
     private static Bundle parseProfileData(IProfile profile){
         Bundle bundle = new Bundle();
         JsonProfileParser parser = new JsonProfileParser();
-        List<JsonProfileParser.Pair> pairs = null;
+        Map<String, String > pairs;
         try {
            pairs  = parser.readProfile(profile.getData());
         } catch (IOException e){
             return bundle;
         }
-        for(JsonProfileParser.Pair pair : pairs){
-            bundle.putString(pair.key, pair.value);
+        for(Map.Entry<String, String> pair : pairs.entrySet()){
+            bundle.putString(pair.getKey(), pair.getValue());
         }
         return bundle;
     }

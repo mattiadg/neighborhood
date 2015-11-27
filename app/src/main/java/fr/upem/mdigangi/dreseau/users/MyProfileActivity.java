@@ -7,6 +7,8 @@ import android.os.Bundle;
 
 import com.example.android.wifidirect.R;
 
+import fr.upem.android.usersprovider.IProfile;
+
 public class MyProfileActivity extends Activity implements ProfileFragment.ProfileFragmentListener{
 
     @Override
