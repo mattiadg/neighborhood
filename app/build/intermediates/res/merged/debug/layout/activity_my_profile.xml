@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/profFragmentContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+</FrameLayout><!-- From: file:/home/mattia/AndroidStudioProjects/Neighbourhood/app/src/main/res/layout/activity_my_profile.xml -->
