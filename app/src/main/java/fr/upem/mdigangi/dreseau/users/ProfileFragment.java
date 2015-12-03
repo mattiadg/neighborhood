@@ -12,11 +12,13 @@ import android.widget.TextView;
 
 import com.example.android.wifidirect.R;
 
-import java.io.IOException;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
 
 import fr.upem.android.usersprovider.IProfile;
-import fr.upem.android.usersprovider.JsonProfileParser;
+import fr.upem.android.usersprovider.UsersDBOpenHelper;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -35,14 +37,14 @@ public class ProfileFragment extends Fragment {
     private String email;
 
 
-    public static ProfileFragment newInstance(IProfile profile) {
+    public static ProfileFragment newInstance(IProfile profile) throws JSONException {
 
         Bundle bundle = parseProfileData(profile);
 
         ProfileFragment fragment = new ProfileFragment();
         fragment.setArguments(bundle);
         Log.i("setArguments: ", bundle.toString());
-        Log.i("JSON: ",profile.getData());
+        Log.i("JSON: ",profile.getData().toString());
         return fragment;
     }
 
@@ -64,11 +66,11 @@ public class ProfileFragment extends Fragment {
         if(bundle != null){
             Log.i("setArguments: ", bundle.toString());
 
-            name = bundle.getString("name");
-            surname = bundle.getString("surname");
-            birth = bundle.getString("birthDate");
-            phone = bundle.getString("mobile");
-            email = bundle.getString("email");
+            name = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_NAME);
+            surname = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME);
+            birth = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE);
+            phone = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_PHONE);
+            email = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL);
         }
 
     }
@@ -101,18 +103,15 @@ public class ProfileFragment extends Fragment {
         this.listener = (ProfileFragmentListener) activity;
     }
 
-    private static Bundle parseProfileData(IProfile profile){
+    private static Bundle parseProfileData(IProfile profile) throws JSONException {
         Bundle bundle = new Bundle();
-        JsonProfileParser parser = new JsonProfileParser();
-        Map<String, String > pairs;
-        try {
-           pairs  = parser.readProfile(profile.getData());
-        } catch (IOException e){
-            return bundle;
+        JSONObject object = profile.getData();
+
+        Iterator<String> iter = object.keys();
+        for(String key = iter.next(); iter.hasNext(); key = iter.next()){
+            bundle.putString(key, object.getString(key));
         }
-        for(Map.Entry<String, String> pair : pairs.entrySet()){
-            bundle.putString(pair.getKey(), pair.getValue());
-        }
+
         return bundle;
     }
 }

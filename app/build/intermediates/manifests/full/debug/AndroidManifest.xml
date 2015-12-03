@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="14"
-        android:targetSdkVersion="14" />
+        android:targetSdkVersion="23" />
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -15,17 +15,18 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Google Play filtering -->
     <uses-feature
         android:name="android.hardware.wifi.direct"
         android:required="true" />
 
-    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <application
+        android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:supportsRtl="true"
         android:theme="@android:style/Theme.Holo" >
         <activity
             android:name="com.example.android.wifidirect.WiFiDirectActivity"
@@ -46,6 +47,18 @@
         </activity>
         <activity android:name="fr.upem.mdigangi.dreseau.users.MyProfileActivity" >
         </activity>
+
+        <service
+            android:name="fr.upem.mdigangi.dreseau.db.DBService"
+            android:exported="false" >
+        </service>
+
+        <provider
+            android:name="fr.upem.android.usersprovider.UsersProvider"
+            android:authorities="fr.upem.android.usersprovider.provider"
+            android:enabled="true"
+            android:exported="true" >
+        </provider>
     </application>
 
 </manifest>

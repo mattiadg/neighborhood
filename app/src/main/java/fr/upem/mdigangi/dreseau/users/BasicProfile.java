@@ -3,6 +3,9 @@ package fr.upem.mdigangi.dreseau.users;
 
 import com.example.android.wifidirect.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.android.usersprovider.UsersDBOpenHelper;
 
@@ -28,17 +31,20 @@ public class BasicProfile implements IProfile {
     }
 
     @Override
-    public String getData() {
-        StringBuilder sb = new StringBuilder("{ ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_NAME + "\":" + name + "\", ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME + "\":" + "\"" + surname + "\", ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_PHONE + "\":" + "\"" + phoneNumber + "\", ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE + "\":" + "\"" + birthDate + "\", ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL + "\":" + "\"" + email + "\", ");
-        sb.append("\"" + UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID + "\":" + "\"" + imageId + "\"");
-        sb.append("}");
+    public JSONObject getData() {
+        JSONObject sb = new JSONObject();
+        try {
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_NAME, name);
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME, surname);
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_PHONE, phoneNumber );
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE, birthDate);
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL, email);
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID, imageId);
+        } catch (JSONException e) {
+            throw new IllegalStateException("Profile cannot be transformed in JSON!");
+        }
 
-        return sb.toString();
+        return sb;
     }
 
     public static void main(String[] args){

@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.android.wifidirect"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
-    <uses-sdk android:minSdkVersion="14" />
+    <uses-sdk
+        android:minSdkVersion="15"
+        tools:overrideLibrary="fr.upem.android.usersprovider" />
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -13,36 +16,46 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Google Play filtering -->
     <uses-feature
         android:name="android.hardware.wifi.direct"
         android:required="true" />
 
-    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Holo" >
+        android:theme="@android:style/Theme.Holo">
         <activity
             android:name=".WiFiDirectActivity"
-            android:label="@string/app_name">
-        </activity>
+            android:label="@string/app_name"></activity>
 
         <!-- Used for transferring files  after a successful connection -->
         <service
             android:name=".FileTransferService"
             android:enabled="true" />
 
-        <activity android:name="fr.upem.mdigangi.dreseau.main.MainActivity" >
+        <activity android:name="fr.upem.mdigangi.dreseau.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="fr.upem.mdigangi.dreseau.users.MyProfileActivity" >
+        <activity android:name="fr.upem.mdigangi.dreseau.users.MyProfileActivity"></activity>
+
+        <service
+            android:name="fr.upem.mdigangi.dreseau.db.DBService"
+            android:exported="false"></service>
+
+        <activity
+            android:name="fr.upem.mdigangi.dreseau.users.NewProfileActivity"
+            android:label="@string/title_activity_new_profile"
+            android:parentActivityName="fr.upem.mdigangi.dreseau.main.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fr.upem.mdigangi.dreseau.main.MainActivity" />
         </activity>
     </application>
 

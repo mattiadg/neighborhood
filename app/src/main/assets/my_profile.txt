@@ -1,0 +1,8 @@
+{
+    "name": "Mattia",
+    "surname":"Di Gangi",
+    "e-mail":"mdg@gmail.com",
+    "birthdate":"16/05/1992",
+    "phone_number":"3463797016",
+    "imageid":"1"
+}

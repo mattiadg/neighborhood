@@ -29,4 +29,9 @@ public class MainActivity extends Activity{
         startActivity(intent);
     }
 
+
+    //TODO Add new activity for creating profile
+    //TODO Exchange profiles between users
+
+
 }
