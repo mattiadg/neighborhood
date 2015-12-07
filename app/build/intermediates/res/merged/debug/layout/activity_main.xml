@@ -10,7 +10,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="WiFiManager"
+        android:text="@string/wifiManager"
         android:id="@+id/button"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
@@ -20,10 +20,32 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="My Profile"
+        android:text="@string/myProfile"
         android:id="@+id/button2"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:onClick="myProfile"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/editProfile"
+        android:id="@+id/buttonEditProfile"
+        android:onClick="editProfile"
+        android:layout_below="@+id/button2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Friends"
+        android:id="@+id/button3"
+        android:layout_below="@+id/buttonEditProfile"
+        android:layout_alignRight="@+id/button"
+        android:layout_alignEnd="@+id/button"
+        android:layout_marginTop="41dp"
+        android:onClick="friends"/>
+
 </RelativeLayout>
 <!-- From: file:/home/mattia/AndroidStudioProjects/Neighbourhood/app/src/main/res/layout/activity_main.xml -->

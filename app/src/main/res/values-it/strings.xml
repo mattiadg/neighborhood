@@ -19,4 +19,8 @@
     <string name="telephone">Telefono</string>
     <string name="email">e-mail</string>
     <string name="birthdate">Data di Nascita</string>
+    <string name="surname">Surname</string>
+    <string name="registerButton">Register!</string>
+    <string name="wifiManager">WiFi Manager</string>
+    <string name="myProfile">My Profile</string>
 </resources>

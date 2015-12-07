@@ -27,7 +27,7 @@ public class BasicProfileFactory implements IProfileFactory {
         String birth = json.getString(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE);
         Log.d(TAG, birth);
         int imageId = json.getInt(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID);
-
+        Log.d(TAG, String.valueOf(imageId));
         return new BasicProfile(name, surname, phone, birth, email, imageId);
     }
 }

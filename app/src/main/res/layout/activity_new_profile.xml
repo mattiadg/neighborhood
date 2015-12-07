@@ -9,4 +9,111 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="fr.upem.mdigangi.dreseau.users.NewProfileActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/name"
+        android:id="@+id/nameShowInsert"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/surname"
+        android:id="@+id/surnameShowInsert"
+        android:layout_below="@+id/nameShowInsert"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/email"
+        android:id="@+id/emailShowInsert"
+        android:layout_below="@+id/surnameShowInsert"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/birthdate"
+        android:id="@+id/birthShowInsert"
+        android:layout_below="@+id/emailShowInsert"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/telephone"
+        android:id="@+id/phoneShowInsert"
+        android:layout_below="@+id/birthShowInsert"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/nameInsert"
+        android:layout_alignParentTop="true"
+        android:layout_alignBottom="@id/nameShowInsert"
+        android:layout_toRightOf="@+id/nameShowInsert"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/surnameInsert"
+        android:layout_alignTop="@+id/surnameShowInsert"
+        android:layout_alignBottom="@id/surnameShowInsert"
+        android:layout_toRightOf="@+id/surnameShowInsert"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/emailInsert"
+        android:layout_below="@+id/surnameShowInsert"
+        android:layout_alignBottom="@id/emailShowInsert"
+        android:layout_toRightOf="@+id/emailShowInsert"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/birthInsert"
+        android:layout_below="@+id/emailInsert"
+        android:layout_toRightOf="@+id/birthShowInsert"
+        android:layout_alignBottom="@+id/birthShowInsert"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/phoneInsert"
+        android:layout_below="@id/birthInsert"
+        android:layout_alignTop="@+id/phoneShowInsert"
+        android:layout_toRightOf="@+id/phoneShowInsert"
+        android:layout_alignBottom="@id/phoneShowInsert"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/registerButton"
+        android:id="@+id/buttonRegister"
+        android:layout_below="@+id/phoneShowInsert"
+        android:layout_toLeftOf="@+id/birthInsert"
+        android:layout_toStartOf="@+id/birthInsert"
+        android:layout_marginTop="74dp"
+        android:onClick="register"/>
+
 </RelativeLayout>

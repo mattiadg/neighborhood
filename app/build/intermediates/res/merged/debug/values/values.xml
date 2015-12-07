@@ -239,6 +239,7 @@
     <string name="connect_peer_button">Connect</string>
     <string name="disconnect_peer_button">Disconnect</string>
     <string name="discover_peers_button">Discover</string>
+    <string name="editProfile">Edit Profile</string>
     <string name="email">e-mail</string>
     <string name="empty"/>
     <string name="empty_message">No devices found. Turn on P2P and perform discovery from the Action Bar</string>
@@ -248,15 +249,21 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="label_me">ME</string>
     <string name="label_peers">PEERS</string>
+    <string name="myProfile">My Profile</string>
     <string name="name">Name</string>
     <string name="no">no</string>
     <string name="p2p_off_warning">Enable P2P from action bar button above or system settings</string>
+    <string name="registerButton">Register!</string>
     <!-- From: file:/home/mattia/AndroidStudioProjects/Neighbourhood/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values/values.xml -->
     <eat-comment/>
     <string name="status_bar_notification_info_overflow">999+</string>
     <!-- From: file:/home/mattia/AndroidStudioProjects/Neighbourhood/app/src/main/res/values/strings.xml -->
     <eat-comment/>
+    <string name="surname">Surname</string>
     <string name="telephone">Phone</string>
+    <string name="title_activity_my_friends">MyFriendsActivity</string>
+    <string name="title_activity_new_profile">NewProfileActivity</string>
+    <string name="wifiManager">WiFi Manager</string>
     <string name="yes">yes</string>
     <!-- From: file:/home/mattia/AndroidStudioProjects/Neighbourhood/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values/values.xml -->
     <eat-comment/>
