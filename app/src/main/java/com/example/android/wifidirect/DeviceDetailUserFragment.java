@@ -18,9 +18,8 @@ package com.example.android.wifidirect;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -28,7 +27,6 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager.ConnectionInfoListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,13 +35,22 @@ import android.widget.TextView;
 
 import com.example.android.wifidirect.DeviceListFragment.DeviceActionListener;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+
+import fr.upem.android.communication.CommunicationProtocol;
+import fr.upem.android.communication.ServerService;
+import fr.upem.android.usersprovider.IProfile;
+import fr.upem.mdigangi.dreseau.db.FriendsService;
+import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
+import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
+import fr.upem.mdigangi.dreseau.users.UsersDB;
 
 /**
  * A fragment that manages a particular peer and allows interaction with device
@@ -51,11 +58,13 @@ import java.net.Socket;
  */
 public class DeviceDetailUserFragment extends Fragment implements ConnectionInfoListener {
 
-    protected static final int CHOOSE_JSON_RESULT_CODE = 21;
     private View mContentView = null;
     private WifiP2pDevice device;
     private WifiP2pInfo info;
     ProgressDialog progressDialog = null;
+    private TextView statusText;
+
+    FriendsService.FriendsServiceListener listener;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -77,17 +86,17 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                     progressDialog.dismiss();
                 }
                 progressDialog = ProgressDialog.show(getActivity(), "Press back to cancel",
-                        "Connecting to :" + device.deviceAddress, true, true
-//                        new DialogInterface.OnCancelListener() {
-//
-//                            @Override
-//                            public void onCancel(DialogInterface dialog) {
-//                                ((DeviceActionListener) getActivity()).cancelDisconnect();
-//                            }
-//                        }
-                        );
-                ((DeviceActionListener) getActivity()).connect(config);
+                        "Connecting to :" + device.deviceAddress, true, true,
+                        new DialogInterface.OnCancelListener() {
 
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                ((DeviceActionListener) getActivity()).cancelDisconnect();
+                            }
+                        }
+                );
+
+                ((DeviceActionListener) getActivity()).connect(config);
             }
         });
 
@@ -106,32 +115,24 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                     @Override
                     public void onClick(View v) {
                         // Send its own profile to other user
-                        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                        intent.setType("image/*");
-                        startActivityForResult(intent, CHOOSE_JSON_RESULT_CODE);
+                        Log.d("DeviceDetailFragment", "clicked on send");
+                        connectToSend(MyProfileHandler.getMyProfile().getData().toString());
                     }
                 });
+        mContentView.findViewById(R.id.btn_send_message).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
+                    }
+                }
+        );
+
+        listener = (FriendsService.FriendsServiceListener) getActivity();
+        statusText = (TextView) mContentView.findViewById(R.id.status_text);
         return mContentView;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        // User has picked an image. Transfer it to group owner i.e peer using
-        // FileTransferService.
-        Uri uri = data.getData();
-        TextView statusText = (TextView) mContentView.findViewById(R.id.status_text);
-        statusText.setText("Sending: " + uri);
-        Log.d(WiFiDirectActivity.TAG, "Intent----------- " + uri);
-        Intent serviceIntent = new Intent(getActivity(), FileTransferService.class);
-        serviceIntent.setAction(FileTransferService.ACTION_SEND_FILE);
-        serviceIntent.putExtra(FileTransferService.EXTRAS_FILE_PATH, uri.toString());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,
-                info.groupOwnerAddress.getHostAddress());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_GROUP_OWNER_PORT, 8988);
-        getActivity().startService(serviceIntent);
-    }
 
     @Override
     public void onConnectionInfoAvailable(final WifiP2pInfo info) {
@@ -144,8 +145,8 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         // The owner IP is now known.
         TextView view = (TextView) mContentView.findViewById(R.id.group_owner);
         view.setText(getResources().getString(R.string.group_owner_text)
-                + ((info.isGroupOwner == true) ? getResources().getString(R.string.yes)
-                        : getResources().getString(R.string.no)));
+                + ((info.isGroupOwner) ? getResources().getString(R.string.yes)
+                : getResources().getString(R.string.no)));
 
         // InetAddress from WifiP2pInfo struct.
         view = (TextView) mContentView.findViewById(R.id.device_info);
@@ -155,18 +156,29 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         // server. The file server is single threaded, single connection server
         // socket.
         if (info.groupFormed && info.isGroupOwner) {
-            new FileServerAsyncTask(getActivity(), mContentView.findViewById(R.id.status_text))
-                    .execute();
+            Intent intent = new Intent(getActivity(), ServerService.class);
+            intent.setAction(ServerService.ACTION_START);
+            getActivity().startService(intent);
         } else if (info.groupFormed) {
             // The other device acts as the client. In this case, we enable the
             // get file button.
             mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
-            ((TextView) mContentView.findViewById(R.id.status_text)).setText(getResources()
+            mContentView.findViewById(R.id.btn_send_message).setVisibility(View.VISIBLE);
+            setStatus(getResources()
                     .getString(R.string.client_text));
         }
 
         // hide the connect button
         mContentView.findViewById(R.id.btn_connect).setVisibility(View.GONE);
+    }
+
+    /**
+     * Used from encapsulating activity for setting the status
+     *
+     * @param status The status to print
+     */
+    public void setStatus(String status) {
+        statusText.setText(status);
     }
 
     /**
@@ -195,99 +207,208 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         view.setText(R.string.empty);
         view = (TextView) mContentView.findViewById(R.id.group_owner);
         view.setText(R.string.empty);
-        view = (TextView) mContentView.findViewById(R.id.status_text);
-        view.setText(R.string.empty);
+        setStatus(getResources().getString(R.string.empty));
         mContentView.findViewById(R.id.btn_start_client).setVisibility(View.GONE);
         this.getView().setVisibility(View.GONE);
     }
 
+    /*
+    private IProfile readProfile(Context context, InputStream in) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        byte buf[] = new byte[1024];
+        int len;
+        JSONObject profileAsJson;
+        while ((len = in.read(buf)) != -1) {
+            builder.append(new String(buf, "UTF-8"));
+        }
+        in.close();
+        try {
+            Log.i("DevicDetailUserFragment", builder.toString());
+            profileAsJson = new JSONObject(builder.toString());
+            return new BasicProfileFactory().newProfile(profileAsJson);
+        } catch (JSONException e) {
+            throw new IOException(e);
+        }
+    }
+*/
+
+    public void connectToSend(String toSend) {
+        setStatus("Sending profile...");
+        Bundle bundle = new Bundle();
+        bundle.putString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,
+                info.groupOwnerAddress.getHostAddress());
+        bundle.putInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT, 8988);
+        bundle.putString(ProfileTransferService.EXTRAS_PROFILE_SEND, toSend);
+        new AsyncClient().execute(bundle);
+    }
+
+
     /**
      * A simple server socket that accepts connection and writes some data on
      * the stream.
+     * <p/>
+     * public class ProfileServerAsyncTask extends AsyncTask<Void, Void, IProfile> {
+     * <p/>
+     * private Context context;
+     * <p/>
+     * /**
+     *
+     * @param context
+     * @param statusText /
+     *                   public ProfileServerAsyncTask(Context context, View statusText) {
+     *                   this.context = context;
+     *                   }
+     * @Override protected IProfile doInBackground(Void... params) {
+     * try {
+     * ServerSocket serverSocket = new ServerSocket(8988);
+     * Socket client = serverSocket.accept();
+     * <p/>
+     * InputStream inputstream = client.getInputStream();
+     * IProfile profile = readProfile(context, inputstream);
+     * Log.d(WiFiDirectActivity.TAG, "Profile: received");
+     * serverSocket.close();
+     * return profile;
+     * } catch (IOException e) {
+     * Toast.makeText(getActivity(), "Received a corrupted profile", Toast.LENGTH_LONG);
+     * return null;
+     * }
+     * }
+     * <p/>
+     * /*
+     * (non-Javadoc)
+     * @Override protected void onPostExecute(IProfile result) {
+     * if (result != null) {
+     * setStatus("Profile copied - " + result);
+     * try {
+     * listener.getFriendsService().insertProfile(result);
+     * } catch (IOException e) {
+     * e.printStackTrace();
+     * }
+     * }
+     * <p/>
+     * }
+     * <p/>
+     * /*
+     * (non-Javadoc)
+     * @Override protected void onPreExecute() {
+     * setStatus("Opening a server socket");
+     * }
+     * <p/>
+     * }
+     * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+     * @see android.os.AsyncTask#onPreExecute()
      */
-    public static class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
 
-        private Context context;
-        private TextView statusText;
+    class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
 
-        /**
-         * @param context
-         * @param statusText
-         */
-        public FileServerAsyncTask(Context context, View statusText) {
-            this.context = context;
-            this.statusText = (TextView) statusText;
-        }
+        private IProfile profile;
+        private Socket socket;
+        //Indicates whether the client is still running
+        private boolean running;
+        //Monitor used for the concurrent access to running
+        private final Object monitor = new Object();
 
         @Override
-        protected String doInBackground(Void... params) {
+        protected Boolean doInBackground(Bundle... params) {
+            Bundle bundle = params[0];
+            String host = bundle.getString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS);
+            int port = bundle.getInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT);
+            boolean isProfile = bundle.containsKey(ProfileTransferService.EXTRAS_PROFILE_SEND);
+            String toSend;
+            if(isProfile) {
+                toSend = bundle.getString(ProfileTransferService.EXTRAS_PROFILE_SEND);
+                try {
+                    profile = new BasicProfileFactory().newProfile(new JSONObject(toSend));
+                } catch (JSONException e) {
+                    throw new IllegalArgumentException("Didn't receive a JSON! A JSON profile was expected");
+                }
+            }
+            socket = new Socket();
+            DataOutputStream ostream = null;
+            DataInputStream istream = null;
+            String received = null;
+            CommunicationProtocol protocol = new CommunicationProtocol(CommunicationProtocol.Actor.Client, this);
             try {
-                ServerSocket serverSocket = new ServerSocket(8988);
-                Log.d(WiFiDirectActivity.TAG, "Server: Socket opened");
-                Socket client = serverSocket.accept();
-                Log.d(WiFiDirectActivity.TAG, "Server: connection done");
-                final File f = new File(Environment.getExternalStorageDirectory() + "/"
-                        + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
-                        + ".jpg");
+                Log.d(WiFiDirectActivity.TAG, "Opening client socket - ");
+                socket.bind(null);
+                socket.connect((new InetSocketAddress(host, port)), 5000);
+                running = true;
+                Log.d(WiFiDirectActivity.TAG, "Client socket - " + String.valueOf(socket.isConnected()));
+                ostream = new DataOutputStream(socket.getOutputStream());
 
-                File dirs = new File(f.getParent());
-                if (!dirs.exists())
-                    dirs.mkdirs();
-                f.createNewFile();
-
-                Log.d(WiFiDirectActivity.TAG, "server: copying files " + f.toString());
-                InputStream inputstream = client.getInputStream();
-                copyFile(inputstream, new FileOutputStream(f));
-                serverSocket.close();
-                return f.getAbsolutePath();
+                istream = new DataInputStream(socket.getInputStream());
+                //byte[] buffer = new byte[1024];
+                while (running) {
+                    synchronized (monitor) {
+                        if (!running) {
+                            return false;
+                        }
+                    }
+                    String nextString = protocol.nextMsg(received);
+                    Log.d("Client", "Sending " + nextString);
+                    ostream.writeUTF(nextString);
+                    received = new String(istream.readUTF());
+                    Log.d("Client", "Received " + received);
+                }
             } catch (IOException e) {
                 Log.e(WiFiDirectActivity.TAG, e.getMessage());
-                return null;
+            } finally {
+                if (socket != null) {
+                    if (socket.isConnected()) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // Give up
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (ostream != null) {
+                    try {
+                        ostream.close();
+                    } catch (IOException e) {
+                        // Give up
+                        e.printStackTrace();
+                    }
+                }
+                if (istream != null) {
+                    try {
+                        istream.close();
+                    } catch (IOException e) {
+                        // Give up
+                        e.printStackTrace();
+                    }
+                }
             }
+            return true;
         }
 
-        /*
-         * (non-Javadoc)
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
         @Override
-        protected void onPostExecute(String result) {
-            if (result != null) {
-                statusText.setText("File copied - " + result);
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse("file://" + result), "image/*");
-                context.startActivity(intent);
+        public void registerProfile(JSONObject jsonProfile) {
+            UsersDB db = new UsersDB(getActivity());
+            try {
+                db.addUser(new BasicProfileFactory().newProfile(jsonProfile));
+            } catch (IOException e) {
+                disconnect();
             }
-
         }
 
-        /*
-         * (non-Javadoc)
-         * @see android.os.AsyncTask#onPreExecute()
-         */
         @Override
-        protected void onPreExecute() {
-            statusText.setText("Opening a server socket");
+        public IProfile getProfile() {
+            Log.d("CLient", "getProfile: " + profile.getData().toString());
+            return profile;
         }
 
-    }
-
-    public static boolean copyFile(InputStream inputStream, OutputStream out) {
-        byte buf[] = new byte[1024];
-        int len;
-        try {
-            while ((len = inputStream.read(buf)) != -1) {
-                out.write(buf, 0, len);
-
+        @Override
+        public void disconnect() {
+            synchronized (monitor) {
+                running = false;
             }
-            out.close();
-            inputStream.close();
-        } catch (IOException e) {
-            Log.d(WiFiDirectActivity.TAG, e.toString());
-            return false;
         }
-        return true;
-    }
 
+        @Override
+        public void treatMessage(String message) {
+            throw new UnsupportedOperationException("This client sends only profiles!");
+        }
+    }
 }

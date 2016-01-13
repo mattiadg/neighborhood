@@ -7,6 +7,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:layout_margin="16dp"
     tools:context="fr.upem.mdigangi.dreseau.users.NewProfileActivity">
 
     <TextView
@@ -15,9 +16,10 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/name"
         android:id="@+id/nameShowInsert"
-        android:layout_alignParentTop="true"
+        android:layout_above="@+id/surnameShowInsert"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="20dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -25,9 +27,9 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/surname"
         android:id="@+id/surnameShowInsert"
-        android:layout_below="@+id/nameShowInsert"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_below="@+id/nameInsert"
+        android:layout_alignLeft="@+id/nameShowInsert"
+        android:layout_alignStart="@+id/nameShowInsert" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -36,8 +38,10 @@
         android:text="@string/email"
         android:id="@+id/emailShowInsert"
         android:layout_below="@+id/surnameShowInsert"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignLeft="@+id/surnameShowInsert"
+        android:layout_alignStart="@+id/surnameShowInsert"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -46,8 +50,8 @@
         android:text="@string/birthdate"
         android:id="@+id/birthShowInsert"
         android:layout_below="@+id/emailShowInsert"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignLeft="@+id/emailShowInsert"
+        android:layout_alignStart="@+id/emailShowInsert" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -55,9 +59,10 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/telephone"
         android:id="@+id/phoneShowInsert"
+        android:layout_marginTop="20dp"
         android:layout_below="@+id/birthShowInsert"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignLeft="@+id/birthShowInsert"
+        android:layout_alignStart="@+id/birthShowInsert" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -65,45 +70,51 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/nameInsert"
         android:layout_alignParentTop="true"
-        android:layout_alignBottom="@id/nameShowInsert"
-        android:layout_toRightOf="@+id/nameShowInsert"/>
+        android:layout_alignLeft="@+id/surnameInsert"
+        android:layout_alignStart="@+id/surnameInsert"
+        android:ems="10"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/surnameInsert"
-        android:layout_alignTop="@+id/surnameShowInsert"
-        android:layout_alignBottom="@id/surnameShowInsert"
-        android:layout_toRightOf="@+id/surnameShowInsert"/>
+        android:layout_alignBottom="@+id/surnameShowInsert"
+        android:layout_alignLeft="@+id/emailInsert"
+        android:layout_alignStart="@+id/emailInsert"
+        android:ems="10"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/emailInsert"
-        android:layout_below="@+id/surnameShowInsert"
-        android:layout_alignBottom="@id/emailShowInsert"
-        android:layout_toRightOf="@+id/emailShowInsert"/>
+        android:layout_alignBottom="@+id/emailShowInsert"
+        android:layout_alignLeft="@+id/birthInsert"
+        android:layout_alignStart="@+id/birthInsert"
+        android:ems="10"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/birthInsert"
-        android:layout_below="@+id/emailInsert"
+        android:layout_alignBottom="@+id/birthShowInsert"
         android:layout_toRightOf="@+id/birthShowInsert"
-        android:layout_alignBottom="@+id/birthShowInsert"/>
+        android:layout_toEndOf="@+id/birthShowInsert"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:ems="10"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/phoneInsert"
-        android:layout_below="@id/birthInsert"
-        android:layout_alignTop="@+id/phoneShowInsert"
-        android:layout_toRightOf="@+id/phoneShowInsert"
-        android:layout_alignBottom="@id/phoneShowInsert"/>
+        android:layout_above="@+id/buttonRegister"
+        android:layout_alignLeft="@+id/birthInsert"
+        android:layout_alignStart="@+id/birthInsert"
+        android:ems="10"/>
 
     <Button
         android:layout_width="wrap_content"

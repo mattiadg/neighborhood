@@ -63,7 +63,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 // Wifi Direct mode is enabled
                 activity.setIsWifiP2pEnabled(true);
+                Log.d(WiFiDirectActivity.TAG, "WiFiP2P is enabled");
             } else {
+                Log.d(WiFiDirectActivity.TAG, "WiFiP2P is disabled");
                 activity.setIsWifiP2pEnabled(false);
                 activity.resetData();
 
@@ -82,6 +84,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
 
             if (manager == null) {
+                Log.d(WiFiDirectActivity.TAG, "manager is null");
                 return;
             }
 
@@ -93,7 +96,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 // we are connected with the other device, request connection
                 // info to find group owner IP
 
-                DeviceDetailFragment fragment = (DeviceDetailFragment) activity
+                DeviceDetailUserFragment fragment = (DeviceDetailUserFragment) activity
                         .getFragmentManager().findFragmentById(R.id.frag_detail);
                 manager.requestConnectionInfo(channel, fragment);
             } else {

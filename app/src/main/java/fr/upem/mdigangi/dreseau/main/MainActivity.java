@@ -1,17 +1,21 @@
 package fr.upem.mdigangi.dreseau.main;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 
 import com.example.android.wifidirect.R;
 import com.example.android.wifidirect.WiFiDirectActivity;
 
-import fr.upem.android.usersprovider.IProfile;
-import fr.upem.mdigangi.dreseau.db.DBService;
-import fr.upem.mdigangi.dreseau.users.BasicProfile;
-import fr.upem.mdigangi.dreseau.users.MyFriendsActivity;
+import org.json.JSONException;
+
+import fr.upem.mdigangi.dreseau.db.MyProfileService;
+import fr.upem.mdigangi.dreseau.users.FriendsListActivity;
 import fr.upem.mdigangi.dreseau.users.MyProfileActivity;
 import fr.upem.mdigangi.dreseau.users.NewProfileActivity;
 
@@ -22,12 +26,12 @@ public class MainActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        IProfile profile = new BasicProfile("mattia", "DiGangi", "wefwe", "we+fwe", "wòegg", 8);
-        DBService.startActionInsert(this, profile.getData());
+
     }
 
-    public void wifiConnect(View view) {
+    public void wifiConnect(View view) throws JSONException {
         Intent intent = new Intent(this, WiFiDirectActivity.class);
+        //MyProfileSingleton.createProfileService(this);
         startActivity(intent);
     }
 
@@ -43,11 +47,9 @@ public class MainActivity extends Activity{
     }
 
     public void friends(View view) {
-        Intent intent = new Intent(this, MyFriendsActivity.class);
+        Intent intent = new Intent(this, FriendsListActivity.class);
         startActivity(intent);
     }
-
-    //TODO Exchange profiles between users
 
 
 }

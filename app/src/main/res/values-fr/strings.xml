@@ -23,4 +23,8 @@
     <string name="registerButton">Register!</string>
     <string name="wifiManager">WiFi Manager</string>
     <string name="myProfile">My Profile</string>
+    <string name="title_activity_my_profile">My Profile</string>
+    <string name="remove">Remove</string>
+    <string name="exchange_profiles_button">Exchange Profiles</string>
+    <string name="send_message" />
 </resources>

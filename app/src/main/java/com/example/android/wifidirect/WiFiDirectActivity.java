@@ -18,9 +18,11 @@ package com.example.android.wifidirect;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -28,6 +30,7 @@ import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.ChannelListener;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
@@ -38,6 +41,8 @@ import android.widget.Toast;
 
 import com.example.android.wifidirect.DeviceListFragment.DeviceActionListener;
 
+import fr.upem.mdigangi.dreseau.db.FriendsService;
+
 /**
  * An activity that uses WiFi Direct APIs to discover and connect with available
  * devices. WiFi Direct APIs are asynchronous and rely on callback mechanism
@@ -45,7 +50,7 @@ import com.example.android.wifidirect.DeviceListFragment.DeviceActionListener;
  * The application should also register a BroadcastReceiver for notification of
  * WiFi state related events.
  */
-public class WiFiDirectActivity extends Activity implements ChannelListener, DeviceActionListener {
+public class WiFiDirectActivity extends Activity implements ChannelListener, DeviceActionListener, FriendsService.FriendsServiceListener {
 
     public static final String TAG = "wifidirectdemo";
     private WifiP2pManager manager;
@@ -55,6 +60,23 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
     private final IntentFilter intentFilter = new IntentFilter();
     private Channel channel;
     private BroadcastReceiver receiver = null;
+
+    //Service to communicate with db
+    private FriendsService service;
+    private boolean bound = false;
+    //Connection to communicate with service
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            service = ((FriendsService.FriendsServiceBinder) binder).getFriendsService();
+            bound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bound = false;
+        }
+    };
 
     /**
      * @param isWifiP2pEnabled the isWifiP2pEnabled to set
@@ -75,6 +97,8 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
     }
@@ -93,6 +117,19 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
         unregisterReceiver(receiver);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, FriendsService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unbindService(connection);
+    }
+
     /**
      * Remove all peers and clear all fields. This is called on
      * BroadcastReceiver receiving a state change event.
@@ -100,7 +137,7 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
     public void resetData() {
         DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_list);
-        DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager()
+        DeviceDetailUserFragment fragmentDetails = (DeviceDetailUserFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_detail);
         if (fragmentList != null) {
             fragmentList.clearPeers();
@@ -168,7 +205,7 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
 
     @Override
     public void showDetails(WifiP2pDevice device) {
-        DeviceDetailFragment fragment = (DeviceDetailFragment) getFragmentManager()
+        DeviceDetailUserFragment fragment = (DeviceDetailUserFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_detail);
         fragment.showDetails(device);
 
@@ -193,7 +230,7 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
 
     @Override
     public void disconnect() {
-        final DeviceDetailFragment fragment = (DeviceDetailFragment) getFragmentManager()
+        final DeviceDetailUserFragment fragment = (DeviceDetailUserFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_detail);
         fragment.resetViews();
         manager.removeGroup(channel, new ActionListener() {
@@ -262,5 +299,14 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
             }
         }
 
+    }
+
+    @Override
+    public FriendsService getFriendsService() {
+        if(bound){
+            return service;
+        } else {
+            throw new IllegalStateException("Activity not bound to FriendsService!");
+        }
     }
 }

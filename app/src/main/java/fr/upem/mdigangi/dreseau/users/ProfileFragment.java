@@ -43,8 +43,7 @@ public class ProfileFragment extends Fragment {
 
         ProfileFragment fragment = new ProfileFragment();
         fragment.setArguments(bundle);
-        Log.i("setArguments: ", bundle.toString());
-        Log.i("JSON: ",profile.getData().toString());
+
         return fragment;
     }
 
@@ -64,7 +63,6 @@ public class ProfileFragment extends Fragment {
 
         Bundle bundle = getArguments();
         if(bundle != null){
-            Log.i("setArguments: ", bundle.toString());
 
             name = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_NAME);
             surname = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME);
@@ -89,11 +87,6 @@ public class ProfileFragment extends Fragment {
             phone.setText(this.phone);
             email.setText(this.email);
             date.setText(this.birth);
-
-            Log.i("onStart():", "name: " + this.name + " " + this.surname);
-            Log.i("onStart():", "phone: " + this.phone);
-            Log.i("onStart():", "email: " + this.email);
-            Log.i("onStart():", "date: " + this.birth);
         }
     }
 
@@ -108,7 +101,8 @@ public class ProfileFragment extends Fragment {
         JSONObject object = profile.getData();
 
         Iterator<String> iter = object.keys();
-        for(String key = iter.next(); iter.hasNext(); key = iter.next()){
+        while(iter.hasNext()){
+            String key = iter.next();
             bundle.putString(key, object.getString(key));
         }
 

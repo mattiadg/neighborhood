@@ -1,30 +1,25 @@
-package fr.upem.mdigangi.dreseau.users;
+package fr.upem.mdigangi.dreseau.main;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import com.example.android.wifidirect.R;
 
-import org.json.JSONException;
+import java.util.Objects;
 
-import java.io.IOException;
-
-import fr.upem.android.usersprovider.IProfile;
+import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
 import fr.upem.mdigangi.dreseau.db.MyProfileService;
+import fr.upem.mdigangi.dreseau.users.MyProfileActivity;
+import fr.upem.mdigangi.dreseau.users.NewProfileActivity;
 
-public class MyProfileActivity extends Activity implements ProfileFragment.ProfileFragmentListener {
+public class ProxyActivity extends Activity {
 
-    private static String TAG = "MyProfileActivity";
-
-    private IProfile my_profile;
+    private final Object monitor = new Object();
     private MyProfileService service;
     private boolean bound = false;
 
@@ -34,7 +29,7 @@ public class MyProfileActivity extends Activity implements ProfileFragment.Profi
             MyProfileService.MyProfileBinder myBinder = (MyProfileService.MyProfileBinder) binder;
             service = myBinder.getProfileProvider();
             bound = true;
-            showProfile();
+            loadProfile();
         }
 
         @Override
@@ -46,8 +41,7 @@ public class MyProfileActivity extends Activity implements ProfileFragment.Profi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_profile);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        setContentView(R.layout.activity_proxy);
     }
 
     @Override
@@ -62,26 +56,19 @@ public class MyProfileActivity extends Activity implements ProfileFragment.Profi
         super.onStop();
         if (bound) {
             unbindService(connection);
-            bound = false;
         }
     }
 
-    @Override
-    public void itemClicked(long id) {
-        //TODO
-    }
-
-    private void showProfile() {
-        my_profile = service.getMyProfile();
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment newFragment = null;
-        try {
-            newFragment = ProfileFragment.newInstance(my_profile);
-        } catch (JSONException e) {
-            finish();
+    private void loadProfile() {
+        if (bound) {
+            try {
+                service.getMyProfile();
+            } catch (IllegalStateException e) {
+                Intent intent1 = new Intent(this, NewProfileActivity.class);
+                startActivity(intent1);
+            }
+            Intent intent1 = new Intent(this, MainActivity.class);
+            startActivity(intent1);
         }
-        ft.add(R.id.profFragmentContainer, newFragment);
-        ft.commit();
     }
 }
-
