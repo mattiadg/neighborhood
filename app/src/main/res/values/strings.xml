@@ -36,4 +36,6 @@
     <string name="remove">Remove</string>
     <string name="exchange_profiles_button">Exchange Profiles</string>
     <string name="send_message">Send a message</string>
+    <string name="messageDialog">Message to send</string>
+    <string name="friend_activity">FriendsActivity</string>
 </resources>

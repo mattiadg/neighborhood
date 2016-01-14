@@ -13,4 +13,18 @@ public interface IProfile {
 
     //Returns user data in Json format
     JSONObject getData();
+
+    public String getName();
+
+    public String getSurname();
+
+    public String getPhoneNumber();
+
+    public String getBirthDate();
+
+    public String getEmail();
+
+    public int getImageId();
+
+    public int getDbId();
 }

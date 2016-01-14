@@ -30,6 +30,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private ProfileFragmentListener listener;
+    private IProfile profile;
     private String name;
     private String surname;
     private String birth;
@@ -37,12 +38,9 @@ public class ProfileFragment extends Fragment {
     private String email;
 
 
-    public static ProfileFragment newInstance(IProfile profile) throws JSONException {
+    public static ProfileFragment newInstance(IProfile profile) {
 
-        Bundle bundle = parseProfileData(profile);
-
-        ProfileFragment fragment = new ProfileFragment();
-        fragment.setArguments(bundle);
+        ProfileFragment fragment = new ProfileFragment(profile);
 
         return fragment;
     }
@@ -61,16 +59,14 @@ public class ProfileFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Bundle bundle = getArguments();
-        if(bundle != null){
+    }
 
-            name = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_NAME);
-            surname = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME);
-            birth = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE);
-            phone = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_PHONE);
-            email = bundle.getString(UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL);
-        }
-
+    private ProfileFragment(IProfile profile){
+        name = profile.getName();
+        surname = profile.getSurname();
+        birth = profile.getSurname();
+        phone = profile.getPhoneNumber();
+        email = profile.getEmail();
     }
 
     @Override
@@ -88,12 +84,6 @@ public class ProfileFragment extends Fragment {
             email.setText(this.email);
             date.setText(this.birth);
         }
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        this.listener = (ProfileFragmentListener) activity;
     }
 
     private static Bundle parseProfileData(IProfile profile) throws JSONException {

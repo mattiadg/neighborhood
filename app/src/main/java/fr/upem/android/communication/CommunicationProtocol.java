@@ -15,6 +15,7 @@ public class CommunicationProtocol {
     static final String PROTO_RECV_PROFILE = "Waiting for your profile...";
     static final String PROTO_SEND_MESSAGE = "Sending a message...";
     static final String PROTO_RECV_MESSAGE = "Waiting for your message";
+    static final String PROTO_ACK = "OK. Received";
 
     public enum Actor {Client, Server }
     enum State {INIT, READY, RECV_PROFILE, NOTIFY_SEND_PROFILE, SEND_PROFILE,

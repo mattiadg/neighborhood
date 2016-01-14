@@ -1,5 +1,7 @@
 package fr.upem.android.communication;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,16 +19,12 @@ class ServerActor extends Actor {
     protected String init(String received) {
         if (CommunicationProtocol.PROTO_HELLO.equals(received)) {
             this.state = CommunicationProtocol.State.READY;
+            Log.d("init", "in State READY");
             return CommunicationProtocol.PROTO_HELLO;
         } else {
             this.state = CommunicationProtocol.State.END;
             return error();
         }
-    }
-
-
-    protected String init() {
-        return null;
     }
 
     protected String receiveProfile(String received) {
@@ -65,8 +63,11 @@ class ServerActor extends Actor {
 
     @Override
     protected String receiveMessage(String recvd) {
-        //TODO FILL THIS METHOD
-        return null;
+        listener.treatMessage(recvd);
+        this.state = CommunicationProtocol.State.READY;
+        return CommunicationProtocol.PROTO_ACK;
     }
+
+
 
 }

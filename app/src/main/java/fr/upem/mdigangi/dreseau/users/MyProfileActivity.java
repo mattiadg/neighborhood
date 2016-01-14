@@ -74,12 +74,7 @@ public class MyProfileActivity extends Activity implements ProfileFragment.Profi
     private void showProfile() {
         my_profile = service.getMyProfile();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment newFragment = null;
-        try {
-            newFragment = ProfileFragment.newInstance(my_profile);
-        } catch (JSONException e) {
-            finish();
-        }
+        Fragment newFragment = ProfileFragment.newInstance(my_profile);
         ft.add(R.id.profFragmentContainer, newFragment);
         ft.commit();
     }

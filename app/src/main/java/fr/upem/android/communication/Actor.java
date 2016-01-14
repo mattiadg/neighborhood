@@ -1,5 +1,7 @@
 package fr.upem.android.communication;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,11 +21,21 @@ abstract class Actor implements CommunicationProtocol.IActor {
     protected String readyListening(String received) {
         if (CommunicationProtocol.PROTO_SEND_PROFILE.equals(received)) {
             this.state = CommunicationProtocol.State.RECV_PROFILE;
+            Log.d("readyListening", "In state RECV_PROFILE");
             return CommunicationProtocol.PROTO_RECV_PROFILE;
+        } else if(CommunicationProtocol.PROTO_SEND_MESSAGE.equals(received)){
+            this.state = CommunicationProtocol.State.RECV_MESSAGE;
+            Log.d("readyListening", "In state RECV_MESSAGE");
+            return CommunicationProtocol.PROTO_RECV_MESSAGE;
         } else {
             this.state = CommunicationProtocol.State.END;
             return error();
         }
+    }
+
+    protected String sendNotificationMessage(String recvd) {
+        this.state = CommunicationProtocol.State.SEND_MESSAGE;
+        return CommunicationProtocol.PROTO_SEND_MESSAGE;
     }
 
     protected abstract String init(String recv);
@@ -51,6 +63,12 @@ abstract class Actor implements CommunicationProtocol.IActor {
                 return sendNotificationProfile(recvd);
             case SEND_PROFILE:
                 return sendProfile(recvd);
+            case NOTIFY_SEND_MESSAGE:
+                return sendNotificationMessage(recvd);
+            case SEND_MESSAGE:
+                return sendMessage(recvd);
+            case RECV_MESSAGE:
+                return receiveMessage(recvd);
             case END:
                 listener.disconnect();
                 return "";

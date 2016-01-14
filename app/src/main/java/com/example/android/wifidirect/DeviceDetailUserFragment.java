@@ -16,8 +16,10 @@
 
 package com.example.android.wifidirect;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.wifi.WpsInfo;
@@ -31,6 +33,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.android.wifidirect.DeviceListFragment.DeviceActionListener;
@@ -123,10 +126,16 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
+                        //TODO FARE APPARIRE UNA FINESTRA DI DIALOGO PER SCRIVERE UN MESSAGGIO
                     }
                 }
         );
+        mContentView.findViewById(R.id.btn_send_message).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog(v);
+            }
+        });
 
         listener = (FriendsService.FriendsServiceListener) getActivity();
         statusText = (TextView) mContentView.findViewById(R.id.status_text);
@@ -160,8 +169,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
             intent.setAction(ServerService.ACTION_START);
             getActivity().startService(intent);
         } else if (info.groupFormed) {
-            // The other device acts as the client. In this case, we enable the
-            // get file button.
+            // The other device acts as the server. We enable the two buttons for sending data
             mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
             mContentView.findViewById(R.id.btn_send_message).setVisibility(View.VISIBLE);
             setStatus(getResources()
@@ -212,26 +220,6 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         this.getView().setVisibility(View.GONE);
     }
 
-    /*
-    private IProfile readProfile(Context context, InputStream in) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        byte buf[] = new byte[1024];
-        int len;
-        JSONObject profileAsJson;
-        while ((len = in.read(buf)) != -1) {
-            builder.append(new String(buf, "UTF-8"));
-        }
-        in.close();
-        try {
-            Log.i("DevicDetailUserFragment", builder.toString());
-            profileAsJson = new JSONObject(builder.toString());
-            return new BasicProfileFactory().newProfile(profileAsJson);
-        } catch (JSONException e) {
-            throw new IOException(e);
-        }
-    }
-*/
-
     public void connectToSend(String toSend) {
         setStatus("Sending profile...");
         Bundle bundle = new Bundle();
@@ -241,63 +229,6 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         bundle.putString(ProfileTransferService.EXTRAS_PROFILE_SEND, toSend);
         new AsyncClient().execute(bundle);
     }
-
-
-    /**
-     * A simple server socket that accepts connection and writes some data on
-     * the stream.
-     * <p/>
-     * public class ProfileServerAsyncTask extends AsyncTask<Void, Void, IProfile> {
-     * <p/>
-     * private Context context;
-     * <p/>
-     * /**
-     *
-     * @param context
-     * @param statusText /
-     *                   public ProfileServerAsyncTask(Context context, View statusText) {
-     *                   this.context = context;
-     *                   }
-     * @Override protected IProfile doInBackground(Void... params) {
-     * try {
-     * ServerSocket serverSocket = new ServerSocket(8988);
-     * Socket client = serverSocket.accept();
-     * <p/>
-     * InputStream inputstream = client.getInputStream();
-     * IProfile profile = readProfile(context, inputstream);
-     * Log.d(WiFiDirectActivity.TAG, "Profile: received");
-     * serverSocket.close();
-     * return profile;
-     * } catch (IOException e) {
-     * Toast.makeText(getActivity(), "Received a corrupted profile", Toast.LENGTH_LONG);
-     * return null;
-     * }
-     * }
-     * <p/>
-     * /*
-     * (non-Javadoc)
-     * @Override protected void onPostExecute(IProfile result) {
-     * if (result != null) {
-     * setStatus("Profile copied - " + result);
-     * try {
-     * listener.getFriendsService().insertProfile(result);
-     * } catch (IOException e) {
-     * e.printStackTrace();
-     * }
-     * }
-     * <p/>
-     * }
-     * <p/>
-     * /*
-     * (non-Javadoc)
-     * @Override protected void onPreExecute() {
-     * setStatus("Opening a server socket");
-     * }
-     * <p/>
-     * }
-     * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-     * @see android.os.AsyncTask#onPreExecute()
-     */
 
     class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
 
@@ -315,18 +246,30 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
             int port = bundle.getInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT);
             boolean isProfile = bundle.containsKey(ProfileTransferService.EXTRAS_PROFILE_SEND);
             String toSend;
-            if(isProfile) {
+            //If a profile is sent, load it and put toSend to Null according to ClientActor
+            //specifications
+            if (isProfile) {
                 toSend = bundle.getString(ProfileTransferService.EXTRAS_PROFILE_SEND);
                 try {
                     profile = new BasicProfileFactory().newProfile(new JSONObject(toSend));
+                    toSend = null;
                 } catch (JSONException e) {
                     throw new IllegalArgumentException("Didn't receive a JSON! A JSON profile was expected");
+                }
+            } else {
+                boolean isMessage = bundle.containsKey(ProfileTransferService.EXTRAS_MESSAGE_SEND);
+                //else, if it's a message prepare the message
+                if (isMessage) {
+                    toSend = bundle.getString(ProfileTransferService.EXTRAS_MESSAGE_SEND);
+                } else {
+                    //Else it's an error, return
+                    return false;
                 }
             }
             socket = new Socket();
             DataOutputStream ostream = null;
             DataInputStream istream = null;
-            String received = null;
+            String received = toSend;
             CommunicationProtocol protocol = new CommunicationProtocol(CommunicationProtocol.Actor.Client, this);
             try {
                 Log.d(WiFiDirectActivity.TAG, "Opening client socket - ");
@@ -337,7 +280,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                 ostream = new DataOutputStream(socket.getOutputStream());
 
                 istream = new DataInputStream(socket.getInputStream());
-                //byte[] buffer = new byte[1024];
+                //Allows concurrent deconnection
                 while (running) {
                     synchronized (monitor) {
                         if (!running) {
@@ -383,6 +326,12 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
             return true;
         }
 
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            setStatus("Data sent");
+        }
+
         @Override
         public void registerProfile(JSONObject jsonProfile) {
             UsersDB db = new UsersDB(getActivity());
@@ -410,5 +359,54 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         public void treatMessage(String message) {
             throw new UnsupportedOperationException("This client sends only profiles!");
         }
+    }
+
+    public void showDialog(View view) {
+        // get prompts.xml view
+        Context context = getActivity();
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.message_dialog, null);
+        //String result;
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                context);
+
+        // set prompts.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = (EditText) promptsView
+                .findViewById(R.id.editTextDialogUserInput);
+
+        // set dialog message
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                // get user input and set it to result
+                                // edit text
+                                //result = userInput.getText().toString();
+                                String message = userInput.getText().toString();
+                                Bundle bundle = new Bundle();
+                                bundle.putString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,
+                                        info.groupOwnerAddress.getHostAddress());
+                                bundle.putInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT, 8988);
+                                bundle.putString(ProfileTransferService.EXTRAS_MESSAGE_SEND, message);
+                                new AsyncClient().execute(bundle);
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+
     }
 }

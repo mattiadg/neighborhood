@@ -1,6 +1,7 @@
 package fr.upem.android.usersprovider;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,8 +19,8 @@ public class UsersProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = openHelper.getWritableDatabase();
+        return db.delete(UsersDBOpenHelper.FriendEntry.TABLE_NAME, selection, selectionArgs);
     }
 
     @Override

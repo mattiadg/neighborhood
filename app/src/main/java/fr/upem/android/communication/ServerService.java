@@ -1,9 +1,15 @@
 package fr.upem.android.communication;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.android.wifidirect.R;
 
 import org.json.JSONObject;
 
@@ -19,6 +25,7 @@ import java.util.List;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
+import fr.upem.mdigangi.dreseau.main.MainActivity;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
 import fr.upem.mdigangi.dreseau.users.UsersDB;
 
@@ -29,7 +36,6 @@ public class ServerService extends IntentService implements CommunicationProtoco
 
     public static final String ACTION_START = "com.example.android.wifidirect.action.START";
 
-    // TODO: Rename parameters
     private boolean serverOn = false;
     private List<CommunicationProtocol> protocols = new LinkedList<>();
 
@@ -115,6 +121,8 @@ public class ServerService extends IntentService implements CommunicationProtoco
         private boolean running = true;
         private final Object monitor = new Object();
 
+        private static final int TASK_STACK_BUILDER_CODE = 167;
+
         @Override
         public void registerProfile(JSONObject jsonProfile) {
             UsersDB db = new UsersDB(getApplicationContext());
@@ -139,7 +147,23 @@ public class ServerService extends IntentService implements CommunicationProtoco
 
         @Override
         public void treatMessage(String message) {
-            //TODO FILL THIS METHOD
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
+            taskStackBuilder.addParentStack(MainActivity.class);
+            taskStackBuilder.addNextIntent(intent);
+            PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(TASK_STACK_BUILDER_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Notification notification = new Notification.Builder(getApplicationContext())
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setAutoCancel(true)
+                    .setContentTitle("New Message")
+                    .setContentText(message)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setContentIntent(pendingIntent)
+                    .build();
+
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.notify(getResources().getString(R.string.app_name), TASK_STACK_BUILDER_CODE+1, notification);
         }
 
         private void writeToStream(DataOutputStream os, String toSend) throws IOException {

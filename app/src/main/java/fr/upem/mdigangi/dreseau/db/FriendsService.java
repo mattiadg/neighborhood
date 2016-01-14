@@ -69,6 +69,7 @@ public class FriendsService extends Service {
     }
 
 
+    //TODO Evitare i duplicati!!!
     public void insertProfile(IProfile profile) throws IOException {
         db.addUser(profile);
     }

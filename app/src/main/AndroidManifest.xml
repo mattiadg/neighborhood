@@ -6,7 +6,7 @@
     android:versionName="1.0">
 
     <uses-sdk
-        android:minSdkVersion="15"
+        android:minSdkVersion="16"
         tools:overrideLibrary="fr.upem.android.usersprovider" />
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -72,21 +72,19 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="fr.upem.mdigangi.dreseau.main.MainActivity" />
         </activity>
+        <activity
+            android:name="fr.upem.mdigangi.dreseau.users.FriendsActivity"
+            android:label="@string/friend_activity"
+            android:parentActivityName="fr.upem.mdigangi.dreseau.users.FriendsListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fr.upem.mdigangi.dreseau.users.FriendsListActivity" />
+        </activity>
 
         <service
             android:name="fr.upem.mdigangi.dreseau.db.MyProfileService"
             android:exported="false" />
-
-        <activity
-            android:name="fr.upem.mdigangi.dreseau.users.FriendsActivity"
-            android:label="@string/title_activity_friends"
-            android:parentActivityName="fr.upem.mdigangi.dreseau.users.FriendsListActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="fr.upem.mdigangi.dreseau.main.MainActivity" />
-        </activity>
-
-        <service
+                <service
             android:name="fr.upem.android.communication.ServerService"
             android:exported="false" />
 
