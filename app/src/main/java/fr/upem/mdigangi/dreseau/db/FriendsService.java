@@ -18,7 +18,6 @@ import java.util.List;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
-import fr.upem.mdigangi.dreseau.profiles.DBProfile;
 import fr.upem.mdigangi.dreseau.profiles.DBProfileFactory;
 import fr.upem.mdigangi.dreseau.profiles.IProfileFactory;
 import fr.upem.mdigangi.dreseau.users.UsersDB;
@@ -71,7 +70,15 @@ public class FriendsService extends Service {
 
     //TODO Evitare i duplicati!!!
     public void insertProfile(IProfile profile) throws IOException {
-        db.addUser(profile);
+        Cursor cursor = db.readOne(profile.getUID());
+        if((cursor != null) && (cursor.getCount() > 0)){
+            db.updateOne(profile);
+        } else {
+            db.addUser(profile);
+        }
+        if(cursor != null && !cursor.isClosed()){
+            cursor.close();
+        }
     }
 
     public List<IProfile> getAllFriends() throws JSONException {
@@ -93,6 +100,7 @@ public class FriendsService extends Service {
             }
             list.add(dbFactory.newProfile(jsonTranslation));
         }
+        cursor.close();
         return list;
     }
 

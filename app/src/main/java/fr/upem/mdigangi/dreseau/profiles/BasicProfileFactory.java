@@ -22,6 +22,7 @@ public class BasicProfileFactory implements IProfileFactory {
         String phone;
         String birth;
         int imageId;
+        int uid;
         try {
             name = json.getString(UsersDBOpenHelper.FriendEntry.COLUMN_NAME);
             surname = json.getString(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME);
@@ -29,6 +30,7 @@ public class BasicProfileFactory implements IProfileFactory {
             phone = json.getString(UsersDBOpenHelper.FriendEntry.COLUMN_PHONE);
             birth = json.getString(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE);
             imageId = json.getInt(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID);
+            uid = json.getInt(UsersDBOpenHelper.FriendEntry.COLUMN_UID);
         } catch (JSONException e){
             throw new IllegalArgumentException("JSONObject must be a profile!");
         }
@@ -40,6 +42,6 @@ public class BasicProfileFactory implements IProfileFactory {
             dbId = -1;
         }
 
-        return new BasicProfile(name, surname, phone, birth, email, imageId, dbId);
+        return new BasicProfile(name, surname, phone, birth, email, imageId, dbId, uid);
     }
 }

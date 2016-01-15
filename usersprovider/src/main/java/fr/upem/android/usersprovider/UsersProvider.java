@@ -31,16 +31,6 @@ public class UsersProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
-        long id;
-        SQLiteDatabase db = openHelper.getWritableDatabase();
-        id = db.insert(UsersDBOpenHelper.FriendEntry.TABLE_NAME,
-                null, values);
-        Log.d("UsersProvider::insert", "Inserimento effettuato, id=" + id);
-        return Uri.withAppendedPath(uri, String.valueOf(id));
-    }
-
-    @Override
     public boolean onCreate() {
         openHelper = new UsersDBOpenHelper(getContext());
         openHelper.getWritableDatabase();
@@ -57,9 +47,19 @@ public class UsersProvider extends ContentProvider {
     }
 
     @Override
+    public Uri insert(Uri uri, ContentValues values) {
+        long id;
+        SQLiteDatabase db = openHelper.getWritableDatabase();
+        id = db.insert(UsersDBOpenHelper.FriendEntry.TABLE_NAME,
+                null, values);
+        return Uri.withAppendedPath(uri, String.valueOf(id));
+    }
+
+    @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = openHelper.getWritableDatabase();
+        int n = db.update(UsersDBOpenHelper.FriendEntry.TABLE_NAME, values, selection, selectionArgs);
+        return n;
     }
 }

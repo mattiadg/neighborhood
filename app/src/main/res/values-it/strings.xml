@@ -29,4 +29,5 @@
     <string name="send_message">Invia messaggio</string>
     <string name="messageDialog">Message to send</string>
     <string name="friend_activity">FriendsActivity</string>
+    <string name="chatActivity">Chat di Gruppo</string>
 </resources>

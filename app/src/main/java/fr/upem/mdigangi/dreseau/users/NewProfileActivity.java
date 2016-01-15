@@ -16,9 +16,12 @@ import com.example.android.wifidirect.R;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
+
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.android.usersprovider.UsersDBOpenHelper;
 import fr.upem.mdigangi.dreseau.db.MyProfileService;
+import fr.upem.mdigangi.dreseau.main.MainActivity;
 
 public class NewProfileActivity extends Activity {
 
@@ -67,13 +70,16 @@ public class NewProfileActivity extends Activity {
 
     public void register(View view) {
         //TODO controllo sui campi obbligatori
+        //TODO INSERIRE UID
         if (bound) {
+            IProfile myProfile = profileService.getMyProfile();
             JSONObject bundle = new JSONObject();
             EditText name = (EditText) findViewById(R.id.nameInsert);
             EditText surname = (EditText) findViewById(R.id.surnameInsert);
             EditText email = (EditText) findViewById(R.id.emailInsert);
             EditText birth = (EditText) findViewById(R.id.birthInsert);
             EditText phone = (EditText) findViewById(R.id.phoneInsert);
+            int UID;
             try {
                 bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_NAME, name.getText().toString());
                 bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME, surname.getText().toString());
@@ -81,12 +87,16 @@ public class NewProfileActivity extends Activity {
                 bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_PHONE, phone.getText().toString());
                 bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE, birth.getText().toString());
                 bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID, String.valueOf(R.drawable.default_image));
+                UID = myProfile == null ? new Random().nextInt() : myProfile.getUID();
+                bundle.put(UsersDBOpenHelper.FriendEntry.COLUMN_UID, String.valueOf(UID));
             } catch (JSONException e) {
                 //TODO aggiustare qua
                 throw new IllegalStateException("E' successo qualcosa con JSON");
             }
             Log.d(TAG, bundle.toString());
             profileService.insertMyProfile(bundle);
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
     }
 

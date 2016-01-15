@@ -27,4 +27,6 @@ public interface IProfile {
     public int getImageId();
 
     public int getDbId();
+
+    public int getUID();
 }

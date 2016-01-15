@@ -38,8 +38,66 @@ public class UsersDB {
     }
 
     public void addUser(IProfile user) throws IOException {
+        ContentValues values = packProfile(user);
 
-        JSONObject userJson = user.getData();
+        // Insert the new row, returning the primary key value of the new row
+        context.getContentResolver().insert(
+                UsersProvider.CONTENT_URI, values);
+    }
+
+    public Cursor readOne(int uid) {
+        String[] projection = {
+                UsersDBOpenHelper.FriendEntry.COLUMN_ID,
+                UsersDBOpenHelper.FriendEntry.COLUMN_NAME,
+                UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME,
+                UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE,
+                UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL,
+                UsersDBOpenHelper.FriendEntry.COLUMN_PHONE,
+                UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID,
+        };
+        String select = UsersDBOpenHelper.FriendEntry.COLUMN_UID + "=?";
+        String[] selectArgs = {String.valueOf(uid)};
+        Cursor cursor = context.getContentResolver().query(UsersProvider.CONTENT_URI, projection, select, selectArgs, null);
+        if (cursor == null) {
+            throw new IndexOutOfBoundsException("The database is empty!");
+        }
+        return cursor;
+    }
+
+    public Cursor readAll() throws IndexOutOfBoundsException {
+        String[] projection = {
+                UsersDBOpenHelper.FriendEntry.COLUMN_ID,
+                UsersDBOpenHelper.FriendEntry.COLUMN_NAME,
+                UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME,
+                UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE,
+                UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL,
+                UsersDBOpenHelper.FriendEntry.COLUMN_PHONE,
+                UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID,
+                UsersDBOpenHelper.FriendEntry.COLUMN_UID,
+        };
+
+        Cursor cursor = context.getContentResolver().query(UsersProvider.CONTENT_URI, projection, null, null, null);
+        if (cursor == null) {
+            throw new IndexOutOfBoundsException("The database is empty!");
+        }
+        return cursor;
+    }
+
+    public void updateOne(IProfile profile) {
+        ContentValues values = packProfile(profile);
+        String where = UsersDBOpenHelper.FriendEntry.COLUMN_UID + "=?";
+        String[] whereArgs = {String.valueOf(profile.getUID())};
+        context.getContentResolver().update(UsersProvider.CONTENT_URI, values, where, whereArgs);
+    }
+
+    public int deleteOne(IProfile profile){
+        String[] whereArgs = {String.valueOf(profile.getDbId())};
+        return context.getContentResolver().delete(UsersProvider.CONTENT_URI,
+                UsersDBOpenHelper.FriendEntry.COLUMN_ID + "=?", whereArgs);
+    }
+
+    private ContentValues packProfile(IProfile profile){
+        JSONObject userJson = profile.getData();
         ContentValues values = new ContentValues();
 
         for (Iterator<String> iter = userJson.keys(); iter.hasNext(); ) {
@@ -53,37 +111,11 @@ public class UsersDB {
         }
         try {
             values.put(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID, userJson.getInt(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID));
+            values.put(UsersDBOpenHelper.FriendEntry.COLUMN_UID, userJson.getInt(UsersDBOpenHelper.FriendEntry.COLUMN_UID));
         } catch (JSONException e) {
             throw new IllegalStateException("User cannot be converted to Json!");
         }
-
-        // Insert the new row, returning the primary key value of the new row
-        context.getContentResolver().insert(
-                UsersProvider.CONTENT_URI, values);
-    }
-
-    public Cursor readAll() throws IndexOutOfBoundsException {
-        String[] projection = {
-                UsersDBOpenHelper.FriendEntry.COLUMN_ID,
-                UsersDBOpenHelper.FriendEntry.COLUMN_NAME,
-                UsersDBOpenHelper.FriendEntry.COLUMN_SURNAME,
-                UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE,
-                UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL,
-                UsersDBOpenHelper.FriendEntry.COLUMN_PHONE,
-                UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID,
-        };
-
-        Cursor cursor = context.getContentResolver().query(UsersProvider.CONTENT_URI, projection, null, null, null);
-        if (cursor == null) {
-            throw new IndexOutOfBoundsException("The database is empty!");
-        }
-        return cursor;
-    }
-
-    public int deleteOne(IProfile profile){
-        String[] whereArgs = {String.valueOf(profile.getDbId())};
-        return context.getContentResolver().delete(UsersProvider.CONTENT_URI,
-                UsersDBOpenHelper.FriendEntry.COLUMN_ID + "=?", whereArgs);
+        return values;
     }
 }
 

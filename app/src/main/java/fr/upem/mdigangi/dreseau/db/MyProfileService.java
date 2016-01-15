@@ -42,7 +42,7 @@ public class MyProfileService extends Service {
 
     /**
      *
-     * @return user's profile
+     * @return user's profile if it exists, or null elsewhere
      * @throws IllegalStateException If profile does not exist or the file is corrupted
      */
     public IProfile getMyProfile() {
@@ -55,7 +55,7 @@ public class MyProfileService extends Service {
         try {
             myProfile = loadProfileFromFile();
         } catch (IOException e) {
-            throw new IllegalStateException("Profile file doesn't exist!");
+            return null;
         }
         MyProfileHandler.loadProfile(myProfile);
         return myProfile;

@@ -68,4 +68,7 @@ public class DBProfile implements IProfile {
     public String toString() {
         return profile.toString();
     }
+
+    @Override
+    public int getUID() { return profile.getUID(); }
 }

@@ -12,6 +12,7 @@ import com.example.android.wifidirect.R;
 
 import java.util.Objects;
 
+import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
 import fr.upem.mdigangi.dreseau.db.MyProfileService;
 import fr.upem.mdigangi.dreseau.users.MyProfileActivity;
@@ -61,14 +62,15 @@ public class ProxyActivity extends Activity {
 
     private void loadProfile() {
         if (bound) {
-            try {
-                service.getMyProfile();
-            } catch (IllegalStateException e) {
+            IProfile profile = service.getMyProfile();
+            if (profile == null) {
                 Intent intent1 = new Intent(this, NewProfileActivity.class);
                 startActivity(intent1);
             }
+
             Intent intent1 = new Intent(this, MainActivity.class);
             startActivity(intent1);
         }
     }
 }
+

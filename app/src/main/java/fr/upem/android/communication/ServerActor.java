@@ -27,6 +27,8 @@ class ServerActor extends Actor {
         }
     }
 
+    //TODO Add broadcasting
+    @Override
     protected String receiveProfile(String received) {
         JSONObject json;
         try {
@@ -61,6 +63,7 @@ class ServerActor extends Actor {
         return null;
     }
 
+    //TODO ADD BROADCASTING
     @Override
     protected String receiveMessage(String recvd) {
         listener.treatMessage(recvd);

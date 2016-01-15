@@ -23,6 +23,7 @@ public class UsersDBOpenHelper extends SQLiteOpenHelper{
         public static final String COLUMN_EMAIL = "email";
         public static final String COLUMN_IMAGE_ID = "imageid";
         public static final String COLUMN_TIMESTAMP = "last_update";
+        public static final String COLUMN_UID = "uid";
     }
 
     private static final String TEXT_TYPE = " Text";
@@ -39,7 +40,8 @@ public class UsersDBOpenHelper extends SQLiteOpenHelper{
                     FriendEntry.COLUMN_PHONE + TEXT_TYPE + COMMA_SEP +
                     FriendEntry.COLUMN_EMAIL + TEXT_TYPE + COMMA_SEP +
                     FriendEntry.COLUMN_IMAGE_ID + INT_TYPE + NOT_NULL + COMMA_SEP +
-                    FriendEntry.COLUMN_TIMESTAMP + DATE_TYPE +
+                    FriendEntry.COLUMN_TIMESTAMP + DATE_TYPE + COMMA_SEP +
+                    FriendEntry.COLUMN_UID + INT_TYPE + NOT_NULL +
                     " );";
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + FriendEntry.TABLE_NAME;

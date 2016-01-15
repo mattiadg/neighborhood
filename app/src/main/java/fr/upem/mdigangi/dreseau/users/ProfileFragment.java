@@ -64,7 +64,7 @@ public class ProfileFragment extends Fragment {
     private ProfileFragment(IProfile profile){
         name = profile.getName();
         surname = profile.getSurname();
-        birth = profile.getSurname();
+        birth = profile.getBirthDate();
         phone = profile.getPhoneNumber();
         email = profile.getEmail();
     }

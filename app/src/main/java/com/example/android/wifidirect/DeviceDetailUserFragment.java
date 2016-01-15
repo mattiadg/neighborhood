@@ -48,6 +48,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import fr.upem.android.communication.CommunicationProtocol;
+import fr.upem.android.communication.Message;
 import fr.upem.android.communication.ServerService;
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.FriendsService;
@@ -164,17 +165,20 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         // After the group negotiation, we assign the group owner as the file
         // server. The file server is single threaded, single connection server
         // socket.
+        Intent intent = new Intent(getActivity(), ServerService.class);
+        intent.setAction(ServerService.ACTION_START);
         if (info.groupFormed && info.isGroupOwner) {
-            Intent intent = new Intent(getActivity(), ServerService.class);
-            intent.setAction(ServerService.ACTION_START);
-            getActivity().startService(intent);
+            intent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, true);
         } else if (info.groupFormed) {
             // The other device acts as the server. We enable the two buttons for sending data
+            intent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, false);
             mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
             mContentView.findViewById(R.id.btn_send_message).setVisibility(View.VISIBLE);
+            //TODO fix this string value
             setStatus(getResources()
                     .getString(R.string.client_text));
         }
+        getActivity().startService(intent);
 
         // hide the connect button
         mContentView.findViewById(R.id.btn_connect).setVisibility(View.GONE);
@@ -230,7 +234,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         new AsyncClient().execute(bundle);
     }
 
-    class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
+    private class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
 
         private IProfile profile;
         private Socket socket;
@@ -334,9 +338,8 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
 
         @Override
         public void registerProfile(JSONObject jsonProfile) {
-            UsersDB db = new UsersDB(getActivity());
             try {
-                db.addUser(new BasicProfileFactory().newProfile(jsonProfile));
+                listener.getFriendsService().insertProfile(new BasicProfileFactory().newProfile(jsonProfile));
             } catch (IOException e) {
                 disconnect();
             }
@@ -377,21 +380,26 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         final EditText userInput = (EditText) promptsView
                 .findViewById(R.id.editTextDialogUserInput);
 
+        final Message.Builder messageBuilder = new Message.Builder()
+                .setProfile(MyProfileHandler.getMyProfile());
+
         // set dialog message
         alertDialogBuilder
                 .setCancelable(false)
                 .setPositiveButton("OK",
                         new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,int id) {
+                            public void onClick(DialogInterface dialog, int id) {
                                 // get user input and set it to result
                                 // edit text
                                 //result = userInput.getText().toString();
                                 String message = userInput.getText().toString();
+                                messageBuilder.setText(message);
                                 Bundle bundle = new Bundle();
                                 bundle.putString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,
                                         info.groupOwnerAddress.getHostAddress());
                                 bundle.putInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT, 8988);
-                                bundle.putString(ProfileTransferService.EXTRAS_MESSAGE_SEND, message);
+                                bundle.putString(ProfileTransferService.EXTRAS_MESSAGE_SEND,
+                                        messageBuilder.build().toString());
                                 new AsyncClient().execute(bundle);
                             }
                         })

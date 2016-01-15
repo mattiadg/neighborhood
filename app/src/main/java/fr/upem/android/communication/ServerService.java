@@ -5,12 +5,17 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.util.Log;
 
 import com.example.android.wifidirect.R;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -24,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import fr.upem.android.usersprovider.IProfile;
+import fr.upem.mdigangi.dreseau.db.FriendsService;
 import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
 import fr.upem.mdigangi.dreseau.main.MainActivity;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
@@ -32,12 +38,30 @@ import fr.upem.mdigangi.dreseau.users.UsersDB;
 /**
  * Launch an asynchronous server for a group owner in order to communicate with the peers
  */
-public class ServerService extends IntentService implements CommunicationProtocol.ProtocolListener {
+public class ServerService extends IntentService{
 
     public static final String ACTION_START = "com.example.android.wifidirect.action.START";
+    public static final int CLIENT_PORT = 1234;
+    public static final int SERVER_PORT = 8988;
+    public static final String EXTRAS_IS_GROUP_OWNER = "fr.upem.android.communication.extra.GO";
 
+    private boolean isGroupOwner;
+    private GroupManager groupManager = GroupManager.getGroupManager();
     private boolean serverOn = false;
-    private List<CommunicationProtocol> protocols = new LinkedList<>();
+    private FriendsService friendsService;
+    private boolean bound = false;
+    private final ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            bound = true;
+            friendsService = ((FriendsService.FriendsServiceBinder)binder).getFriendsService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bound = false;
+        }
+    };
 
     public ServerService() {
         super("ServerService");
@@ -49,6 +73,7 @@ public class ServerService extends IntentService implements CommunicationProtoco
         Log.d("ServerService", "onHandleIntent");
         if (intent != null) {
             final String action = intent.getAction();
+            isGroupOwner = intent.getBooleanExtra(EXTRAS_IS_GROUP_OWNER, false);
             if (ACTION_START.equals(action)) {
                 if (serverOn) {
                     return;
@@ -56,6 +81,10 @@ public class ServerService extends IntentService implements CommunicationProtoco
                 serverOn = true;
             }
             Log.d("ServerService", "Starting server");
+            if(!bound){
+                Intent serviceIntent = new Intent(getApplicationContext(), FriendsService.class);
+                bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+            }
             startServer();
         }
     }
@@ -68,14 +97,15 @@ public class ServerService extends IntentService implements CommunicationProtoco
     private void startServer() {
         ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(8988);
+            serverSocket = isGroupOwner ? new ServerSocket(SERVER_PORT) : new ServerSocket(CLIENT_PORT);
             while (serverOn) {
                 synchronized (ACTION_START) {
                     if (!serverOn) {
-
+                        return;
                     }
                 }
                 Socket client = serverSocket.accept();
+                groupManager.addIp(client.getInetAddress().getHostAddress());
                 new SingleThreadServer().execute(client);
             }
         } catch (IOException e) {
@@ -89,26 +119,6 @@ public class ServerService extends IntentService implements CommunicationProtoco
                 }
             }
         }
-    }
-
-    @Override
-    public void registerProfile(JSONObject jsonProfile) {
-
-    }
-
-    @Override
-    public IProfile getProfile() {
-        return null;
-    }
-
-    @Override
-    public void disconnect() {
-
-    }
-
-    @Override
-    public void treatMessage(String message) {
-        //TODO fill this method
     }
 
     /*
@@ -125,11 +135,15 @@ public class ServerService extends IntentService implements CommunicationProtoco
 
         @Override
         public void registerProfile(JSONObject jsonProfile) {
-            UsersDB db = new UsersDB(getApplicationContext());
-            try {
-                db.addUser(new BasicProfileFactory().newProfile(jsonProfile));
-            } catch (IOException e) {
-                disconnect();
+            if(bound) {
+                try {
+                    friendsService.insertProfile(new BasicProfileFactory().newProfile(jsonProfile));
+                    if(isGroupOwner){
+                        broadcastData(jsonProfile.toString(), true);
+                    }
+                } catch (IOException e) {
+                    disconnect();
+                }
             }
         }
 
@@ -146,7 +160,16 @@ public class ServerService extends IntentService implements CommunicationProtoco
         }
 
         @Override
-        public void treatMessage(String message) {
+        public void treatMessage(String messageAsJson) {
+            Message message;
+            try {
+                message = Message.Builder.rebuildMessage(messageAsJson);
+            } catch (JSONException e) {
+                //Didn't receive a message, maybe an attack. Disconnect socket.
+                Log.e("treatMessage", "Not valid message");
+                disconnect();
+                return;
+            }
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
             taskStackBuilder.addParentStack(MainActivity.class);
@@ -156,14 +179,18 @@ public class ServerService extends IntentService implements CommunicationProtoco
             Notification notification = new Notification.Builder(getApplicationContext())
                     .setSmallIcon(R.drawable.ic_launcher)
                     .setAutoCancel(true)
-                    .setContentTitle("New Message")
-                    .setContentText(message)
+                    .setContentTitle(message.getAuthor())
+                    .setContentText(message.getText())
                     .setPriority(Notification.PRIORITY_HIGH)
                     .setContentIntent(pendingIntent)
                     .build();
 
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             notificationManager.notify(getResources().getString(R.string.app_name), TASK_STACK_BUILDER_CODE+1, notification);
+            if(isGroupOwner){
+                Log.d("treatMessage", "I'm the GO. Broadcasting");
+                broadcastData(messageAsJson, false);
+            }
         }
 
         private void writeToStream(DataOutputStream os, String toSend) throws IOException {
@@ -212,5 +239,17 @@ public class ServerService extends IntentService implements CommunicationProtoco
             }
             return true;
         }
+
+        private void broadcastData(String data, boolean isProfile) {
+            if(isProfile){
+                BroadcastingService.startActionProfile(getApplicationContext(), data,
+                        socket.getInetAddress().getHostAddress());
+            } else {
+                BroadcastingService.startActionMessage(getApplicationContext(), data,
+                        socket.getInetAddress().getHostAddress());
+            }
+        }
+
     }
+
 }

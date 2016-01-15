@@ -14,15 +14,17 @@ import fr.upem.android.usersprovider.UsersDBOpenHelper;
  */
 public class BasicProfile implements IProfile {
 
-    private String name;
-    private String surname;
-    private String phoneNumber;
-    private String birthDate;
-    private String email;
-    private int imageId;
-    private int dbId;
+    private final String name;
+    private final String surname;
+    private final String phoneNumber;
+    private final String birthDate;
+    private final String email;
+    private final int imageId;
+    private final int dbId;
+    //Unique global identifier
+    private final int UID;
 
-    public BasicProfile(String name, String surname, String phoneNumber, String birthDate, String email, int imageId, int dbId) {
+    public BasicProfile(String name, String surname, String phoneNumber, String birthDate, String email, int imageId, int dbId, int UID) {
         this.dbId = dbId;
         this.name = name;
         this.surname = surname;
@@ -30,6 +32,7 @@ public class BasicProfile implements IProfile {
         this.birthDate = birthDate;
         this.email = email;
         this.imageId = imageId;
+        this.UID = UID;
     }
 
     @Override
@@ -42,6 +45,7 @@ public class BasicProfile implements IProfile {
             sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_BIRTHDATE, birthDate);
             sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_EMAIL, email);
             sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_IMAGE_ID, imageId);
+            sb.put(UsersDBOpenHelper.FriendEntry.COLUMN_UID, UID);
         } catch (JSONException e) {
             throw new IllegalStateException("Profile cannot be transformed in JSON!");
         }
@@ -76,6 +80,8 @@ public class BasicProfile implements IProfile {
     public int getDbId() {
         return dbId;
     }
+
+    public int getUID() { return UID; }
 
     @Override
     public String toString() {
