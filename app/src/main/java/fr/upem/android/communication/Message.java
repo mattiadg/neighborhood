@@ -1,12 +1,7 @@
 package fr.upem.android.communication;
 
-import android.text.format.DateFormat;
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Date;
 
 import fr.upem.android.usersprovider.IProfile;
 
@@ -18,12 +13,14 @@ import fr.upem.android.usersprovider.IProfile;
  */
 public class Message {
 
-    private static final String FIELD_AUTHOR = "author";
-    private static final String FIELD_TEXT = "text";
-    private static final String FIELD_TIME = "time";
+    public static final String FIELD_AUTHOR = "author";
+    public static final String FIELD_TEXT = "text";
+    public static final String FIELD_TIME = "time";
+
     private final String author;
     private final String text;
     private final long creationTime;
+    private final boolean isSelf;
 
     public static class Builder {
         private String text = null;
@@ -64,7 +61,8 @@ public class Message {
          */
         public Message build(){
             return new Message(profile.getName() + " " + profile.getSurname(),
-                    text.toString(), System.nanoTime());
+                    text.toString(), System.nanoTime(),
+                    true); //We are making the message, it is by ourselves
         }
 
         /**
@@ -77,14 +75,16 @@ public class Message {
             JSONObject jsonMessage = new JSONObject(messageAsJson);
             return new Message(jsonMessage.getString(FIELD_AUTHOR),
                     jsonMessage.getString(FIELD_TEXT),
-                    jsonMessage.getLong(FIELD_TIME));
+                    jsonMessage.getLong(FIELD_TIME),
+                    false); //A rebuilt message has been received
         }
     }
 
-    private Message(String author, String text, long creationTime) {
+    private Message(String author, String text, long creationTime, boolean isSelf) {
         this.author = author;
         this.text = text;
         this.creationTime = creationTime;
+        this.isSelf = isSelf;
     }
 
     public String getAuthor() {
@@ -98,6 +98,8 @@ public class Message {
     public long getCreationTime() {
         return creationTime;
     }
+
+    public boolean isSelf() { return isSelf; }
 
     @Override
     public String toString() {

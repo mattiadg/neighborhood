@@ -5,8 +5,6 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
-
 /**
  * Created by mattia on 10/01/16.
  */
@@ -71,6 +69,8 @@ class ClientActor extends Actor {
     @Override
     protected String sendMessage(String recvd) {
         this.state = CommunicationProtocol.State.READY;
+        Log.d("ClientActor", recvd);
+        Log.d("ClientActor", CommunicationProtocol.PROTO_RECV_MESSAGE);
         if(recvd.equals(CommunicationProtocol.PROTO_RECV_MESSAGE)){
             return data;
         } else {

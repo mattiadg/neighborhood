@@ -18,7 +18,11 @@ package com.example.android.wifidirect;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,6 +33,9 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager.ConnectionInfoListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,14 +54,16 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import fr.upem.android.chat.ChatActivity;
 import fr.upem.android.communication.CommunicationProtocol;
+import fr.upem.android.communication.GroupManager;
 import fr.upem.android.communication.Message;
 import fr.upem.android.communication.ServerService;
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.FriendsService;
 import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
-import fr.upem.mdigangi.dreseau.users.UsersDB;
+import fr.upem.mdigangi.dreseau.users.FriendsListActivity;
 
 /**
  * A fragment that manages a particular peer and allows interaction with device
@@ -123,18 +132,21 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                         connectToSend(MyProfileHandler.getMyProfile().getData().toString());
                     }
                 });
-        mContentView.findViewById(R.id.btn_send_message).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //TODO FARE APPARIRE UNA FINESTRA DI DIALOGO PER SCRIVERE UN MESSAGGIO
-                    }
-                }
-        );
         mContentView.findViewById(R.id.btn_send_message).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showDialog(v);
+            }
+        });
+        mContentView.findViewById(R.id.btn_chat).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ChatActivity.class);
+                intent.putExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT, ServerService.SERVER_PORT);
+                intent.putExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,
+                        info.groupOwnerAddress.getHostAddress());
+                intent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, info.isGroupOwner);
+                startActivity(intent);
             }
         });
 
@@ -167,17 +179,29 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         // socket.
         Intent intent = new Intent(getActivity(), ServerService.class);
         intent.setAction(ServerService.ACTION_START);
+        Log.d("DeviceDetail", "Create ServrService intent");
         if (info.groupFormed && info.isGroupOwner) {
+            Log.d("DeviceDetail", "i'm the group ownwer");
             intent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, true);
+            if (GroupManager.getGroupManager().hasIp()) {
+                Log.d("DeviceDetail", "Showing buttons");
+                mContentView.findViewById(R.id.btn_send_message).setVisibility(View.VISIBLE);
+                mContentView.findViewById(R.id.btn_chat).setVisibility(View.VISIBLE);
+            }
         } else if (info.groupFormed) {
+            Log.d("DeviceDetail", "I0m not the group owner");
             // The other device acts as the server. We enable the two buttons for sending data
             intent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, false);
+            Log.d("DeviceDetail", "Connecting to send profile");
+            connectToSend(MyProfileHandler.getMyProfile().getData().toString());
             mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
             mContentView.findViewById(R.id.btn_send_message).setVisibility(View.VISIBLE);
+            mContentView.findViewById(R.id.btn_chat).setVisibility(View.VISIBLE);
             //TODO fix this string value
             setStatus(getResources()
                     .getString(R.string.client_text));
         }
+        Log.d("DeviceDetail", "Starting service");
         getActivity().startService(intent);
 
         // hide the connect button
@@ -221,6 +245,8 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         view.setText(R.string.empty);
         setStatus(getResources().getString(R.string.empty));
         mContentView.findViewById(R.id.btn_start_client).setVisibility(View.GONE);
+        mContentView.findViewById(R.id.btn_send_message).setVisibility(View.GONE);
+        mContentView.findViewById(R.id.btn_chat).setVisibility(View.GONE);
         this.getView().setVisibility(View.GONE);
     }
 
@@ -233,6 +259,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         bundle.putString(ProfileTransferService.EXTRAS_PROFILE_SEND, toSend);
         new AsyncClient().execute(bundle);
     }
+
 
     private class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
 
@@ -249,31 +276,12 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
             String host = bundle.getString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS);
             int port = bundle.getInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT);
             boolean isProfile = bundle.containsKey(ProfileTransferService.EXTRAS_PROFILE_SEND);
-            String toSend;
             //If a profile is sent, load it and put toSend to Null according to ClientActor
             //specifications
-            if (isProfile) {
-                toSend = bundle.getString(ProfileTransferService.EXTRAS_PROFILE_SEND);
-                try {
-                    profile = new BasicProfileFactory().newProfile(new JSONObject(toSend));
-                    toSend = null;
-                } catch (JSONException e) {
-                    throw new IllegalArgumentException("Didn't receive a JSON! A JSON profile was expected");
-                }
-            } else {
-                boolean isMessage = bundle.containsKey(ProfileTransferService.EXTRAS_MESSAGE_SEND);
-                //else, if it's a message prepare the message
-                if (isMessage) {
-                    toSend = bundle.getString(ProfileTransferService.EXTRAS_MESSAGE_SEND);
-                } else {
-                    //Else it's an error, return
-                    return false;
-                }
-            }
+            String received = getStringToSend(bundle, isProfile);
             socket = new Socket();
             DataOutputStream ostream = null;
             DataInputStream istream = null;
-            String received = toSend;
             CommunicationProtocol protocol = new CommunicationProtocol(CommunicationProtocol.Actor.Client, this);
             try {
                 Log.d(WiFiDirectActivity.TAG, "Opening client socket - ");
@@ -330,6 +338,29 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
             return true;
         }
 
+        @Nullable
+        private String getStringToSend(Bundle bundle, boolean isProfile) {
+            String toSend;
+            if (isProfile) {
+                String recvd = bundle.getString(ProfileTransferService.EXTRAS_PROFILE_SEND);
+                try {
+                    profile = new BasicProfileFactory().newProfile(new JSONObject(recvd));
+                    toSend = null;
+                } catch (JSONException e) {
+                    throw new IllegalArgumentException("Didn't receive a JSON! A JSON profile was expected");
+                }
+            } else {
+                boolean isMessage = bundle.containsKey(ProfileTransferService.EXTRAS_MESSAGE_SEND);
+                //else, if it's a message prepare the message
+                if (isMessage) {
+                    toSend = bundle.getString(ProfileTransferService.EXTRAS_MESSAGE_SEND);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+            return toSend;
+        }
+
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
@@ -339,7 +370,9 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         @Override
         public void registerProfile(JSONObject jsonProfile) {
             try {
-                listener.getFriendsService().insertProfile(new BasicProfileFactory().newProfile(jsonProfile));
+                if(listener.getFriendsService().insertProfile(new BasicProfileFactory().newProfile(jsonProfile))) {
+                    sendNotification();
+                }
             } catch (IOException e) {
                 disconnect();
             }
@@ -361,6 +394,29 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         @Override
         public void treatMessage(String message) {
             throw new UnsupportedOperationException("This client sends only profiles!");
+        }
+
+        private void sendNotification() {
+            Intent intent = new Intent(getActivity(), FriendsListActivity.class);
+
+            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getActivity());
+            taskStackBuilder.addParentStack(WiFiDirectActivity.class);
+            taskStackBuilder.addNextIntent(intent);
+            PendingIntent pendingIntent = taskStackBuilder
+                    .getPendingIntent(1234, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Notification notification = new Notification.Builder(getActivity())
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentTitle(getResources().getString(R.string.receivedProfile))
+                    .setContentText(getResources().getString(R.string.profile_notification_content))
+                    .setDefaults(Notification.DEFAULT_SOUND)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setContentIntent(pendingIntent)
+                    .build();
+
+            NotificationManager manager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.notify(684, notification);
         }
     }
 

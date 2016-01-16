@@ -1,5 +1,6 @@
 package fr.upem.android.communication;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -13,27 +14,23 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.example.android.wifidirect.ProfileTransferService;
 import com.example.android.wifidirect.R;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.FriendsService;
 import fr.upem.mdigangi.dreseau.db.MyProfileHandler;
 import fr.upem.mdigangi.dreseau.main.MainActivity;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
-import fr.upem.mdigangi.dreseau.users.UsersDB;
+import fr.upem.mdigangi.dreseau.users.FriendsListActivity;
 
 /**
  * Launch an asynchronous server for a group owner in order to communicate with the peers
@@ -50,6 +47,8 @@ public class ServerService extends IntentService{
     private boolean serverOn = false;
     private FriendsService friendsService;
     private boolean bound = false;
+    private String go_address;
+
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -105,11 +104,16 @@ public class ServerService extends IntentService{
                     }
                 }
                 Socket client = serverSocket.accept();
-                groupManager.addIp(client.getInetAddress().getHostAddress());
+                if(isGroupOwner) {
+                    groupManager.addIp(client.getInetAddress().getHostAddress());
+                } else {
+                    go_address = client.getInetAddress().getHostAddress();
+                }
                 new SingleThreadServer().execute(client);
             }
         } catch (IOException e) {
-            //TODO add something sensible
+            serverOn = false;
+            Log.d("ServerService", "IOException");
         } finally {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 try {
@@ -131,13 +135,13 @@ public class ServerService extends IntentService{
         private boolean running = true;
         private final Object monitor = new Object();
 
-        private static final int TASK_STACK_BUILDER_CODE = 167;
-
         @Override
         public void registerProfile(JSONObject jsonProfile) {
             if(bound) {
                 try {
-                    friendsService.insertProfile(new BasicProfileFactory().newProfile(jsonProfile));
+                    if(friendsService.insertProfile(new BasicProfileFactory().newProfile(jsonProfile))){
+                        sendNotification();
+                    }
                     if(isGroupOwner){
                         broadcastData(jsonProfile.toString(), true);
                     }
@@ -145,6 +149,29 @@ public class ServerService extends IntentService{
                     disconnect();
                 }
             }
+        }
+
+        private void sendNotification() {
+            Intent intent = new Intent(getApplicationContext(), FriendsListActivity.class);
+
+            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
+            taskStackBuilder.addParentStack(MainActivity.class);
+            taskStackBuilder.addNextIntent(intent);
+            PendingIntent pendingIntent = taskStackBuilder
+                    .getPendingIntent(1234, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Notification notification = new Notification.Builder(getApplicationContext())
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentTitle(getResources().getString(R.string.receivedProfile))
+                    .setContentText(getResources().getString(R.string.profile_notification_content))
+                    .setDefaults(Notification.DEFAULT_SOUND)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setContentIntent(pendingIntent)
+                    .build();
+
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.notify(684, notification);
         }
 
         @Override
@@ -161,32 +188,13 @@ public class ServerService extends IntentService{
 
         @Override
         public void treatMessage(String messageAsJson) {
-            Message message;
-            try {
-                message = Message.Builder.rebuildMessage(messageAsJson);
-            } catch (JSONException e) {
-                //Didn't receive a message, maybe an attack. Disconnect socket.
-                Log.e("treatMessage", "Not valid message");
-                disconnect();
-                return;
+            Intent broadcastIntent = new Intent("fr.upem.android.chat.broadcast.message");
+            broadcastIntent.putExtra(EXTRAS_IS_GROUP_OWNER, isGroupOwner);
+            if(!isGroupOwner){
+                broadcastIntent.putExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS, go_address);
             }
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
-            taskStackBuilder.addParentStack(MainActivity.class);
-            taskStackBuilder.addNextIntent(intent);
-            PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(TASK_STACK_BUILDER_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            Notification notification = new Notification.Builder(getApplicationContext())
-                    .setSmallIcon(R.drawable.ic_launcher)
-                    .setAutoCancel(true)
-                    .setContentTitle(message.getAuthor())
-                    .setContentText(message.getText())
-                    .setPriority(Notification.PRIORITY_HIGH)
-                    .setContentIntent(pendingIntent)
-                    .build();
-
-            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.notify(getResources().getString(R.string.app_name), TASK_STACK_BUILDER_CODE+1, notification);
+            broadcastIntent.putExtra(ProfileTransferService.EXTRAS_MESSAGE_SEND, messageAsJson);
+            sendOrderedBroadcast(broadcastIntent, null, null, null, Activity.RESULT_OK, null, null);
             if(isGroupOwner){
                 Log.d("treatMessage", "I'm the GO. Broadcasting");
                 broadcastData(messageAsJson, false);

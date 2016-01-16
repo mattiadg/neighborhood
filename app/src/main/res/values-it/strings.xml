@@ -30,4 +30,8 @@
     <string name="messageDialog">Message to send</string>
     <string name="friend_activity">FriendsActivity</string>
     <string name="chatActivity">Chat di Gruppo</string>
+    <string name="btn_send">Send</string>
+    <string name="button_chat">Open Chat</string>
+    <string name="receivedProfile">Profile Received!</string>
+    <string name="profile_notification_content">Click to see your friends!</string>
 </resources>

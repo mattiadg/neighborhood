@@ -99,13 +99,23 @@
             android:name="fr.upem.android.communication.BroadcastingService"
             android:exported="false" />
 
-        <activity android:name=".ChatActivity"
+        <activity
+            android:name="fr.upem.android.chat.ChatActivity"
             android:label="@string/chatActivity"
-            android:parentActivityName="com.example.android.wifidirect.WiFiDirectActivity">
+            android:parentActivityName=".WiFiDirectActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.android.wifidirect.WiFiDirectActivity" />
         </activity>
+
+        <receiver
+            android:name="fr.upem.android.chat.MessageNotificationReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="0">
+                <action android:name="fr.upem.android.chat.broadcast.message" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

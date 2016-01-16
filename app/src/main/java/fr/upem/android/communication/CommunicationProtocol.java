@@ -1,6 +1,5 @@
 package fr.upem.android.communication;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import fr.upem.android.usersprovider.IProfile;

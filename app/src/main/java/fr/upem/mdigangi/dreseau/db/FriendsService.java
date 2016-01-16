@@ -68,17 +68,28 @@ public class FriendsService extends Service {
     }
 
 
-    //TODO Evitare i duplicati!!!
-    public void insertProfile(IProfile profile) throws IOException {
+    /**
+     * Insert a new Profile in the db. If the profile already exists it is updated
+     * @param profile The profile to add
+     * @return true whether a new profile has been added
+     * @throws IOException if there are problems reading the db
+     * @throws NullPointerException if profile is null
+     */
+    public boolean insertProfile(IProfile profile) throws IOException {
+        if(profile == null){
+            throw new NullPointerException();
+        }
         Cursor cursor = db.readOne(profile.getUID());
         if((cursor != null) && (cursor.getCount() > 0)){
             db.updateOne(profile);
         } else {
             db.addUser(profile);
+            return true;
         }
         if(cursor != null && !cursor.isClosed()){
             cursor.close();
         }
+        return false;
     }
 
     public List<IProfile> getAllFriends() throws JSONException {

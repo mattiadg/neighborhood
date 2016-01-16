@@ -2,9 +2,6 @@ package fr.upem.android.communication;
 
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
  * Created by mattia on 10/01/16.
  */

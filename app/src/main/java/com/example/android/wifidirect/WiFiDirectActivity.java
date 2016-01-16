@@ -41,6 +41,7 @@ import android.widget.Toast;
 
 import com.example.android.wifidirect.DeviceListFragment.DeviceActionListener;
 
+import fr.upem.android.communication.GroupManager;
 import fr.upem.mdigangi.dreseau.db.FriendsService;
 
 /**
@@ -145,6 +146,8 @@ public class WiFiDirectActivity extends Activity implements ChannelListener, Dev
         if (fragmentDetails != null) {
             fragmentDetails.resetViews();
         }
+        GroupManager.getGroupManager().clearIpList();
+        GroupManager.getGroupManager().clearMessageList();
     }
 
     @Override
