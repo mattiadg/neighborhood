@@ -53,6 +53,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.List;
 
 import fr.upem.android.chat.ChatActivity;
 import fr.upem.android.communication.CommunicationProtocol;
@@ -261,7 +262,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
     }
 
 
-    private class AsyncClient extends AsyncTask<Bundle, Void, Boolean> implements CommunicationProtocol.ProtocolListener {
+    private class AsyncClient extends AsyncTask<Bundle, Void, Bundle> implements CommunicationProtocol.ProtocolListener {
 
         private IProfile profile;
         private Socket socket;
@@ -271,8 +272,9 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
         private final Object monitor = new Object();
 
         @Override
-        protected Boolean doInBackground(Bundle... params) {
+        protected Bundle doInBackground(Bundle... params) {
             Bundle bundle = params[0];
+            String result; //will contain the kind of result
             String host = bundle.getString(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS);
             int port = bundle.getInt(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT);
             boolean isProfile = bundle.containsKey(ProfileTransferService.EXTRAS_PROFILE_SEND);
@@ -296,7 +298,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                 while (running) {
                     synchronized (monitor) {
                         if (!running) {
-                            return false;
+                            return null;
                         }
                     }
                     String nextString = protocol.nextMsg(received);
@@ -335,7 +337,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                     }
                 }
             }
-            return true;
+            return bundle;
         }
 
         @Nullable
@@ -363,14 +365,23 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
 
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            setStatus("Data sent");
+        protected void onPostExecute(Bundle bundle) {
+            //If a message is sent, we want it to show on the chat
+            if (bundle.containsKey(ProfileTransferService.EXTRAS_MESSAGE_SEND)) {
+                List<Message> list = GroupManager.getGroupManager().getSavedMessages();
+                try {
+                    list.add(Message.Builder.rebuildMessage(bundle.getString(ProfileTransferService.EXTRAS_MESSAGE_SEND)));
+                } catch (JSONException e) {
+                    throw new IllegalStateException();
+                }
+                GroupManager.getGroupManager().saveMessages(list);
+            }
         }
 
         @Override
         public void registerProfile(JSONObject jsonProfile) {
             try {
-                if(listener.getFriendsService().insertProfile(new BasicProfileFactory().newProfile(jsonProfile))) {
+                if (listener.getFriendsService().insertProfile(new BasicProfileFactory().newProfile(jsonProfile))) {
                     sendNotification();
                 }
             } catch (IOException e) {
@@ -461,7 +472,7 @@ public class DeviceDetailUserFragment extends Fragment implements ConnectionInfo
                         })
                 .setNegativeButton("Cancel",
                         new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,int id) {
+                            public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
                             }
                         });

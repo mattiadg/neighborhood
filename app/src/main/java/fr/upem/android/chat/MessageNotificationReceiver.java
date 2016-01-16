@@ -15,6 +15,9 @@ import com.example.android.wifidirect.WiFiDirectActivity;
 
 import org.json.JSONException;
 
+import java.util.List;
+
+import fr.upem.android.communication.GroupManager;
 import fr.upem.android.communication.Message;
 import fr.upem.android.communication.ServerService;
 import fr.upem.mdigangi.dreseau.main.MainActivity;
@@ -22,6 +25,7 @@ import fr.upem.mdigangi.dreseau.main.MainActivity;
 public class MessageNotificationReceiver extends BroadcastReceiver {
 
     private static final int TASK_STACK_BUILDER_CODE = 167;
+    public static final int MESSAGE_NOTIFICATION_ID = 168;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -35,9 +39,6 @@ public class MessageNotificationReceiver extends BroadcastReceiver {
         }
         boolean isGO = intent.getBooleanExtra(ServerService.EXTRAS_IS_GROUP_OWNER, false);
         backIntent.putExtra(ServerService.EXTRAS_IS_GROUP_OWNER, isGO);
-        backIntent.putExtra(ChatActivity.EXTRAS_MESSAGE_AUTHOR, message.getAuthor());
-        backIntent.putExtra(ChatActivity.EXTRAS_MESSAGE_TEXT, message.getText());
-        backIntent.putExtra(ChatActivity.EXTRAS_MESSAGE_TIME, message.getCreationTime());
         if(!isGO){
             String go_address = intent.getStringExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS);
             backIntent.putExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS, go_address);
@@ -58,6 +59,9 @@ public class MessageNotificationReceiver extends BroadcastReceiver {
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-        notificationManager.notify(context.getResources().getString(R.string.app_name), TASK_STACK_BUILDER_CODE + 1, notification);
+        notificationManager.notify(MESSAGE_NOTIFICATION_ID, notification);
+        List<Message> list = GroupManager.getGroupManager().getSavedMessages();
+        list.add(message);
+        GroupManager.getGroupManager().saveMessages(list);
     }
 }

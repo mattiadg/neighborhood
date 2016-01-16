@@ -1,6 +1,7 @@
 package fr.upem.android.chat;
 
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -104,13 +105,17 @@ public class ChatActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        //Cancel the notification regarding received messages
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        manager.cancel(MessageNotificationReceiver.MESSAGE_NOTIFICATION_ID);
+
         inputMsg = (EditText) findViewById(R.id.inputMsg);
         listViewMessages = (ListView) findViewById(R.id.list_view_messages);
 
         if (GroupManager.getGroupManager().hasSaved()) {
             listMessages = GroupManager.getGroupManager().getSavedMessages();
         } else {
-            listMessages = new ArrayList<Message>();
+            listMessages = new ArrayList<>();
         }
         adapter = new MessagesListAdapter(this, listMessages);
         listViewMessages.setAdapter(adapter);
@@ -120,21 +125,6 @@ public class ChatActivity extends Activity {
         if (!isGroupOwner) {
             host = intent.getStringExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_ADDRESS);
             port = intent.getIntExtra(ProfileTransferService.EXTRAS_GROUP_OWNER_PORT, ServerService.SERVER_PORT);
-        }
-        if(intent.hasExtra(EXTRAS_MESSAGE_AUTHOR)) {
-            String author = intent.getStringExtra(EXTRAS_MESSAGE_AUTHOR);
-            String text = intent.getStringExtra(EXTRAS_MESSAGE_TEXT);
-            long time = intent.getLongExtra(EXTRAS_MESSAGE_TIME, 0);
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put(Message.FIELD_AUTHOR, author);
-                jsonObject.put(Message.FIELD_TEXT, text);
-                jsonObject.put(Message.FIELD_TIME, time);
-                Message message = Message.Builder.rebuildMessage(jsonObject.toString());
-                listMessages.add(message);
-            } catch (JSONException e) {
-                throw new IllegalStateException("Couldn't create a message!!!");
-            }
         }
     }
 

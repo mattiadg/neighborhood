@@ -18,7 +18,7 @@ public class GroupManager {
     private final List<String> groupIps = new LinkedList<>();
 
     private static final GroupManager instance = new GroupManager();
-    private List<Message> messages = null;
+    private List<Message> messages = new LinkedList<>();
     private boolean saved = false;
 
     //One only instance of this class is allowed at a time

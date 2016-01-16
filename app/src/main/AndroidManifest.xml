@@ -30,7 +30,13 @@
 
         <!-- Used for transferring files  after a successful connection -->
 
-        <activity android:name="fr.upem.mdigangi.dreseau.main.MainActivity" />
+        <activity android:name="fr.upem.mdigangi.dreseau.main.MainActivity" >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
         <activity
             android:name="fr.upem.mdigangi.dreseau.users.MyProfileActivity"
             android:label="@string/title_activity_my_profile"
@@ -86,15 +92,7 @@
         <service
             android:name="fr.upem.android.communication.ServerService"
             android:exported="false" />
-
-        <activity android:name="fr.upem.mdigangi.dreseau.main.ProxyActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
+        
         <service
             android:name="fr.upem.android.communication.BroadcastingService"
             android:exported="false" />
