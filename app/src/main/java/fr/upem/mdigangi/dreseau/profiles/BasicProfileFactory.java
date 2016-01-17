@@ -25,6 +25,7 @@ import org.json.JSONObject;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.android.usersprovider.UsersDBOpenHelper;
+import fr.upem.android.usersprovider.IProfileFactory;
 
 /**
  * A facility to build a BasicProfile by a JSON file. It's an implementation of IProfileFactory.

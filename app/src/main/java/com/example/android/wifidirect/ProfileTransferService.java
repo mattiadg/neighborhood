@@ -1,4 +1,3 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
 
 package com.example.android.wifidirect;
 
@@ -28,7 +27,6 @@ public class ProfileTransferService extends IntentService implements Communicati
 
     private static final int SOCKET_TIMEOUT = 5000;
     public static final String ACTION_EXCHANGE_PROFILE_1 = "com.example.android.wifidirect.EXCHANGE_PROFILE_1";
-    public static final String ACTION_EXCHANGE_PROFILE_2 = "com.example.android.wifidirect.EXCHANGE_PROFILE_2";
     public static final String EXTRAS_GROUP_OWNER_ADDRESS = "go_host";
     public static final String EXTRAS_GROUP_OWNER_PORT = "go_port";
     private static final String TAG = "ProfileTransferService";

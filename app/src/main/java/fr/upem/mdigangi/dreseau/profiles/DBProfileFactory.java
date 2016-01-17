@@ -24,6 +24,7 @@ package fr.upem.mdigangi.dreseau.profiles;
 import org.json.JSONObject;
 
 import fr.upem.android.usersprovider.IProfile;
+import fr.upem.android.usersprovider.IProfileFactory;
 
 /**
  * A facility to build a DBProfile starting by a JSON.

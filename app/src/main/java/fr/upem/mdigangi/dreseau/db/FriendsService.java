@@ -36,9 +36,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import fr.upem.android.usersprovider.IProfile;
-import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
 import fr.upem.mdigangi.dreseau.profiles.DBProfileFactory;
-import fr.upem.mdigangi.dreseau.profiles.IProfileFactory;
+import fr.upem.android.usersprovider.IProfileFactory;
 import fr.upem.mdigangi.dreseau.users.UsersDB;
 
 /**

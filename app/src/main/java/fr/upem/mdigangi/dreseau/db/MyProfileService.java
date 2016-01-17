@@ -39,7 +39,7 @@ import java.io.InputStreamReader;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.profiles.BasicProfileFactory;
-import fr.upem.mdigangi.dreseau.profiles.IProfileFactory;
+import fr.upem.android.usersprovider.IProfileFactory;
 
 /**
  * A bounded service which provides an easy interface to work on the user's profile.
