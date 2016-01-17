@@ -1,6 +1,25 @@
+/**
+ * Neighborhood is an Android app for creating a social network by means
+ of WiFiP2P technology.
+ Copyright (C) 2016  Di Gangi Mattia Antonino
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package fr.upem.mdigangi.dreseau.db;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,10 +42,7 @@ import fr.upem.mdigangi.dreseau.profiles.IProfileFactory;
 import fr.upem.mdigangi.dreseau.users.UsersDB;
 
 /**
- * An {@link IntentService} subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * <p/>
- * helper methods.
+ * A bounded service which provides an easy interface to communicate with the database.
  */
 public class FriendsService extends Service {
 
@@ -34,21 +50,11 @@ public class FriendsService extends Service {
         FriendsService getFriendsService();
     }
 
-    // Actions that this Service can perform
-    private static final String ACTION_ALL_PROFILES = "fr.upem.mdigangi.dreseau.db.action.all";
-    private static final String ACTION_READ_ONE = "fr.upem.mdigangi.dreseau.db.action.read_one";
-
-    //Id parameter for reading and inserting
-    private static final String EXTRA_ID = "fr.upem.mdigangi.dreseau.db.extra.id";
-    private static final String EXTRA_RECEIVER = "fr.upem.mdigangi.dreseau.db.extra.receiver";
-    private static final String EXTRA_BUNDLE = "fr.upem.mdigangi.dreseau.db.extra.bundle_profile";
-    private static final String EXTRA_JSON = "fr.upem.mdigangi.dreseau.db.extra.json_profile";
 
     //Class that effectively communicates with the DB. If changes are needed we can evolve it into
     //a strategy pattern
     private UsersDB db = null;
     //Factory version
-    private IProfileFactory factory = new BasicProfileFactory();
     private IProfileFactory dbFactory = new DBProfileFactory();
 
     public class FriendsServiceBinder extends Binder {

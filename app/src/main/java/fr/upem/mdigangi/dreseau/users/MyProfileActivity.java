@@ -1,3 +1,23 @@
+/**
+ * Neighborhood is an Android app for creating a social network by means
+ of WiFiP2P technology.
+ Copyright (C) 2016  Di Gangi Mattia Antonino
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package fr.upem.mdigangi.dreseau.users;
 
 import android.app.Activity;
@@ -9,17 +29,16 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import com.example.android.wifidirect.R;
-
-import org.json.JSONException;
-
-import java.io.IOException;
 
 import fr.upem.android.usersprovider.IProfile;
 import fr.upem.mdigangi.dreseau.db.MyProfileService;
 
+
+/**
+ * Activity which shows user's profile
+ */
 public class MyProfileActivity extends Activity implements ProfileFragment.ProfileFragmentListener {
 
     private static String TAG = "MyProfileActivity";

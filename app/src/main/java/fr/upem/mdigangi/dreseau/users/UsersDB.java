@@ -1,3 +1,23 @@
+/**
+ * Neighborhood is an Android app for creating a social network by means
+ of WiFiP2P technology.
+ Copyright (C) 2016  Di Gangi Mattia Antonino
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package fr.upem.mdigangi.dreseau.users;
 
 import android.content.ContentValues;
@@ -16,20 +36,10 @@ import fr.upem.android.usersprovider.UsersDBOpenHelper;
 import fr.upem.android.usersprovider.UsersProvider;
 
 /**
+ * Provides sql operations for the database.
  * Created by mattia on 27/11/15.
  */
 public class UsersDB {
-
-    //Result code for DB operations
-    public static final int CODE_GET_MY_PROFILE = 1;
-    public static final int CODE_READ_ONE_PROFILE = 2;
-    public static final int CODE_READ_ALL_PROFILES = 3;
-    public static final int CODE_INSERT_PROFILE = 4;
-    public static final int CODE_ERROR = -1;
-
-    //Return bundle parameters names
-    public static final String EXTRA_MY_PROFILE = "fr.upem.mdigangi.dreseau.extra.my_profile";
-
 
     private Context context;
 

@@ -92,7 +92,7 @@
         <service
             android:name="fr.upem.android.communication.ServerService"
             android:exported="false" />
-        
+
         <service
             android:name="fr.upem.android.communication.BroadcastingService"
             android:exported="false" />
